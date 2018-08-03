@@ -30,8 +30,8 @@ function mockTemplateRegistry(app) {
     }
     return oldLoad.apply(app.registry, arguments);
   };
-
 }
+
 describe('EmberApp', function() {
   let project, projectPath, app, addon;
 
@@ -74,12 +74,40 @@ describe('EmberApp', function() {
 
       afterEach(co.wrap(function *() {
         yield input.dispose();
-        yield output.dispose();
+        if (output) {
+          yield output.dispose();
+        }
       }));
 
       after(co.wrap(function *() {
         yield js.dispose();
       }));
+
+      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not a function', function() {
+        let app = new EmberApp({
+          project,
+          package: false,
+        });
+
+        expect(app._isPackageHookSupplied).to.equal(false);
+      });
+
+      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not supplied', function() {
+        let app = new EmberApp({
+          project,
+        });
+
+        expect(app._isPackageHookSupplied).to.equal(false);
+      });
+
+      it('sets `_isPackageHookSupplied` to `true` if `package` hook is supplied', function() {
+        let app = new EmberApp({
+          project,
+          package: () => input.path(),
+        });
+
+        expect(app._isPackageHookSupplied).to.equal(true);
+      });
 
       it('overrides the output of the build', co.wrap(function *() {
         input.write({
@@ -92,9 +120,9 @@ describe('EmberApp', function() {
 
         let app = new EmberApp({
           project,
+          package: () => input.path(),
         });
         mockTemplateRegistry(app);
-        app.package = () => input.path();
 
         output = yield buildOutput(app.toTree());
 
@@ -120,16 +148,11 @@ describe('EmberApp', function() {
 
         let app = new EmberApp({
           project,
+          package: tree => mergeTrees([tree, input.path()]),
         });
         mockTemplateRegistry(app);
 
         app.getAppJavascript = () => js.path();
-        app.package = function(tree) {
-          return mergeTrees([
-            tree,
-            input.path(),
-          ]);
-        };
 
         output = yield buildOutput(app.toTree());
 
@@ -144,6 +167,7 @@ describe('EmberApp', function() {
             javascript: '// javascript.js',
           },
           'test-project': {
+            styles: {},
             templates: {},
           },
           tests: {
@@ -161,9 +185,8 @@ describe('EmberApp', function() {
       it('prints a warning if `package` is not a function and falls back to default packaging', co.wrap(function *() {
         let app = new EmberApp({
           project,
+          package: {},
         });
-
-        app.package = { };
 
         app.project.ui.writeWarnLine = td.function();
 
@@ -173,6 +196,7 @@ describe('EmberApp', function() {
         app.getTests = td.function();
         app.getExternalTree = td.function();
         app.getSrc = td.function();
+        app._legacyAddonCompile = td.function();
         app._defaultPackager = {
           packagePublic: td.function(),
           packageJavascript: td.function(),
@@ -184,12 +208,45 @@ describe('EmberApp', function() {
 
         output = yield buildOutput(app.toTree());
 
-        td.verify(app.getAppJavascript());
+        td.verify(app.getAppJavascript(false));
         td.verify(app.getAddonStyles());
         td.verify(app.getTests());
         td.verify(app.getExternalTree());
         td.verify(app.getSrc());
         td.verify(app.project.ui.writeWarnLine('`package` hook must be a function, falling back to default packaging.'));
+      }));
+
+      it('receives transpiled ES current app tree', co.wrap(function *() {
+        let app = new EmberApp({
+          project,
+          package: tree => tree,
+        });
+        mockTemplateRegistry(app);
+
+        input.write({
+          fake: {
+            dist: {
+              'foo.js': '// foo.js',
+            },
+          },
+        });
+        app.registry.add('js', {
+          name: 'fake-js-preprocessor',
+          ext: 'js',
+          toTree() {
+            return input.path();
+          },
+        });
+
+        output = yield buildOutput(app.toTree());
+
+        let outputFiles = output.read();
+
+        expect(outputFiles.fake).to.deep.equal({
+          dist: {
+            'foo.js': '// foo.js',
+          },
+        });
       }));
     });
   }
@@ -228,16 +285,30 @@ describe('EmberApp', function() {
       let outputFiles = output.read();
 
       expect(outputFiles['test-project']).to.deep.equal({
-        app: {
-          styles: {
-            'foo.css': 'foo',
-            'bar.css': 'bar',
-          },
+        styles: {
+          'foo.css': 'foo',
+          'bar.css': 'bar',
         },
       });
 
       yield addonFooStyles.dispose();
       yield addonBarStyles.dispose();
+      yield output.dispose();
+    }));
+
+    it('does not fail if add-ons do not export styles', co.wrap(function *() {
+      let app = new EmberApp({
+        project,
+      });
+      app.addonTreesFor = () => [];
+
+      let output = yield buildOutput(app.getAddonStyles());
+      let outputFiles = output.read();
+
+      expect(outputFiles['test-project']).to.deep.equal({
+        styles: { },
+      });
+
       yield output.dispose();
     }));
   });
@@ -253,6 +324,49 @@ describe('EmberApp', function() {
         'robots.txt': '',
       });
       addonFooPublic.write({
+        'foo': 'foo',
+      });
+      addonBarPublic.write({
+        'bar': 'bar',
+      });
+
+      app.trees.public = input.path();
+      app.addonTreesFor = function() {
+        return [
+          addonFooPublic.path(),
+          addonBarPublic.path(),
+        ];
+      };
+
+      let output = yield buildOutput(app.getPublic());
+      let outputFiles = output.read();
+
+      expect(outputFiles).to.deep.equal({
+        public: {
+          'crossdomain.xml': '',
+          'robots.txt': '',
+          'foo': 'foo',
+          'bar': 'bar',
+        },
+      });
+
+      yield input.dispose();
+      yield addonFooPublic.dispose();
+      yield addonBarPublic.dispose();
+      yield output.dispose();
+    }));
+
+    it('does not fail if app or add-ons have the same `public` folder structure', co.wrap(function *() {
+      let input = yield createTempDir();
+      let addonFooPublic = yield createTempDir();
+      let addonBarPublic = yield createTempDir();
+
+      input.write({
+        'crossdomain.xml': '',
+        'robots.txt': '',
+      });
+      addonFooPublic.write({
+        'bar': 'bar',
         'foo': 'foo',
       });
       addonBarPublic.write({
@@ -670,6 +784,19 @@ describe('EmberApp', function() {
         expect(app.options.babel.sourceMaps).to.equal('inline');
       });
     });
+
+    describe('options.fingerprint.exclude', function() {
+      it('excludeds testem in fingerprint exclude', function() {
+        let app = new EmberApp({
+          project,
+          fingerprint: {
+            exclude: [],
+          },
+        });
+
+        expect(app.options.fingerprint.exclude).to.include('testem');
+      });
+    });
   });
 
   describe('addons', function() {
@@ -795,9 +922,11 @@ describe('EmberApp', function() {
 
       it('calls postProcessTree if defined', function() {
         app.toArray = td.function();
+        app._legacyPackage = td.function();
 
+        td.when(app._legacyPackage(), { ignoreExtraArgs: true }).thenReturn('bar');
         td.when(app.toArray(), { ignoreExtraArgs: true }).thenReturn([]);
-        td.when(addon.postprocessTree(), { ignoreExtraArgs: true }).thenReturn('derp');
+        td.when(addon.postprocessTree('all', 'bar')).thenReturn('derp');
 
         expect(app.toTree()).to.equal('derp');
       });
@@ -805,9 +934,11 @@ describe('EmberApp', function() {
       it('calls addonPostprocessTree', function() {
         app.toArray = td.function();
         app.addonPostprocessTree = td.function();
+        app._legacyPackage = td.function();
 
+        td.when(app._legacyPackage(), { ignoreExtraArgs: true }).thenReturn('bar');
         td.when(app.toArray(), { ignoreExtraArgs: true }).thenReturn([]);
-        td.when(app.addonPostprocessTree(), { ignoreExtraArgs: true }).thenReturn('blap');
+        td.when(app.addonPostprocessTree('all', 'bar')).thenReturn('blap');
 
         expect(app.toTree()).to.equal('blap');
       });

@@ -56,7 +56,13 @@ describe('Default Packager: Tests', function() {
       },
     },
     tests: {
-      'addon-test-support': {},
+      'addon-test-support': {
+        '@ember': {
+          'test-helpers': {
+            'global.js': 'define("@ember/test-helpers/global", ["exports"], function(exports) { Object.defineProperty(exports, "__esModule", { value: true }); });',
+          },
+        },
+      },
       acceptance: {
         'login-test.js': ' // login-test.js',
         'logout-test.js': '',
@@ -140,10 +146,6 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      fingerprint: {
-        exclude: [],
-      },
-
       registry: setupRegistryFor('js', tree => tree),
     });
 
@@ -152,7 +154,6 @@ describe('Default Packager: Tests', function() {
     output = yield buildOutput(defaultPackager.packageTests(input.path()));
 
     expect(defaultPackager._cachedTests).to.not.equal(null);
-    expect(defaultPackager._cachedTests._annotation).to.equal('Packaged Tests');
   }));
 
   it('packages test files', co.wrap(function *() {
@@ -173,10 +174,6 @@ describe('Default Packager: Tests', function() {
 
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
-
-      fingerprint: {
-        exclude: [],
-      },
 
       registry: setupRegistryFor('js', tree => tree),
     });
@@ -210,7 +207,7 @@ describe('Default Packager: Tests', function() {
     expect(outputFiles.assets['tests.js']).to.include('EmberENV.TESTS_FILE_LOADED = true;');
   }));
 
-  it('processes tests files according to the registry', co.wrap(function *() {
+  it('does not process `addon-test-support` folder', co.wrap(function *() {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -228,10 +225,6 @@ describe('Default Packager: Tests', function() {
 
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
-
-      fingerprint: {
-        exclude: [],
-      },
 
       registry: setupRegistryFor('js', function(tree) {
         return new Funnel(tree, {
@@ -252,6 +245,81 @@ describe('Default Packager: Tests', function() {
           acceptance: {
             'login-test.js-test': ' // login-test.js',
             'logout-test.js-test': '',
+          },
+          '@ember': {
+            'test-helpers': {
+              'global.js': 'define("@ember/test-helpers/global", ["exports"], function(exports) { Object.defineProperty(exports, "__esModule", { value: true }); });',
+            },
+          },
+          lint: {
+            'login-test.lint.js-test': ' // login-test.lint.js',
+            'logout-test.lint.js-test': '',
+          },
+          helpers: {
+            'resolver.js-test': '',
+            'start-app.js-test': '',
+          },
+          'index.html': 'index',
+          integration: {
+            components: {
+              'login-form-test.js-test': '',
+              'user-menu-test.js-test': '',
+            },
+          },
+          'test-helper.js-test': '// test-helper.js',
+          unit: {
+            services: {
+              'session-test.js-test': '',
+            },
+          },
+        },
+      },
+    });
+  }));
+
+  it('processes tests files according to the registry', co.wrap(function *() {
+    let defaultPackager = new DefaultPackager({
+      project,
+      name,
+      env,
+      areTestsEnabled: true,
+
+      distPaths: {
+        testJsFile: '/assets/tests.js',
+        testSupportJsFile: {
+          testSupport: '/assets/test-support.js',
+          testLoader: '/assets/test-loader.js',
+        },
+        testSupportCssFile: '/assets/test-support.css',
+      },
+
+      vendorTestStaticStyles: [],
+      legacyTestFilesToAppend: [],
+
+      registry: setupRegistryFor('js', function(tree) {
+        return new Funnel(tree, {
+          getDestinationPath(relativePath) {
+            return relativePath.replace(/js/g, 'js-test');
+          },
+        });
+      }),
+    });
+
+    output = yield buildOutput(defaultPackager.processTests(input.path()));
+
+    let outputFiles = output.read();
+
+    expect(outputFiles).to.deep.equal({
+      [name]: {
+        tests: {
+          acceptance: {
+            'login-test.js-test': ' // login-test.js',
+            'logout-test.js-test': '',
+          },
+          '@ember': {
+            'test-helpers': {
+              'global.js': 'define("@ember/test-helpers/global", ["exports"], function(exports) { Object.defineProperty(exports, "__esModule", { value: true }); });',
+            },
           },
           lint: {
             'login-test.lint.js-test': ' // login-test.lint.js',
@@ -349,10 +417,6 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      fingerprint: {
-        exclude: [],
-      },
-
       registry: setupRegistryFor('js', tree => tree),
     });
 
@@ -399,10 +463,6 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      fingerprint: {
-        exclude: [],
-      },
-
       registry: setupRegistryFor('js', tree => tree),
     });
 
@@ -439,10 +499,6 @@ describe('Default Packager: Tests', function() {
         'vendor/custom/a.js',
         'vendor/custom/b.js',
       ],
-
-      fingerprint: {
-        exclude: [],
-      },
 
       registry: setupRegistryFor('js', tree => tree),
     });
@@ -560,10 +616,6 @@ describe('Default Packager: Tests', function() {
 
           vendorTestStaticStyles: [],
           legacyTestFilesToAppend: [],
-
-          fingerprint: {
-            exclude: [],
-          },
 
           registry: setupRegistryFor('js', tree => tree),
         });
