@@ -10,7 +10,7 @@ const expect = require('chai').expect;
 const emberCLIVersion = require('../../../lib/utilities/version-utils').emberCLIVersion;
 const td = require('testdouble');
 const MockCLI = require('../../helpers/mock-cli');
-const experiments = require('../../../lib/experiments');
+const { isExperimentEnabled } = require('../../../lib/experiments');
 
 describe('models/project.js', function() {
   let project, projectPath, packageContents;
@@ -260,7 +260,7 @@ describe('models/project.js', function() {
       it('returns the default targets', function() {
         expect(project.targets).to.deep.equal({
           browsers: [
-            'ie 9',
+            'ie 11',
             'last 1 Chrome versions',
             'last 1 Firefox versions',
             'last 1 Safari versions',
@@ -314,40 +314,44 @@ describe('models/project.js', function() {
 
     it('returns a listing of all ember-cli-addons directly depended on by the project', function() {
       let expected = [
+        'amd-transform',
+        'broccoli-serve-files',
+        'broccoli-watcher',
+        'history-support-middleware',
+        'proxy-server-middleware',
         'testem-url-rewriter-middleware',
         'tests-server-middleware',
-        'history-support-middleware',
-        'broccoli-watcher', 'broccoli-serve-files',
-        'proxy-server-middleware', 'amd-transform',
-        'ember-random-addon', 'ember-non-root-addon',
+        'ember-addon-with-dependencies',
+        'ember-after-blueprint-addon',
+        'ember-before-blueprint-addon',
+        'ember-devDeps-addon',
         'ember-generated-with-export-addon',
-        'ember-before-blueprint-addon', 'ember-after-blueprint-addon',
-        'ember-devDeps-addon', 'ember-addon-with-dependencies', 'ember-super-button',
+        'ember-non-root-addon',
+        'ember-random-addon',
+        'ember-super-button',
       ];
-      expect(Object.keys(project.addonPackages)).to.deep.eql(expected);
+      expect(Object.keys(project.addonPackages)).to.deep.equal(expected);
     });
 
     it('returns instances of the addons', function() {
       let addons = project.addons;
 
-      expect(addons.find(a => a.name === 'ember-non-root-addon')).to.be;
-
-      let superButton = addons.find(a => a.name === 'ember-super-button');
-      expect(!!superButton).to.be;
-      expect(superButton.addons.find(a => a.name === 'ember-yagni')).to.be;
-      expect(superButton.addons.find(a => a.name === 'ember-ng')).to.be;
+      expect(addons[8].name).to.equal('ember-before-blueprint-addon');
+      expect(addons[14].name).to.equal('ember-super-button');
+      expect(addons[14].addons[0].name).to.equal('ember-yagni');
+      expect(addons[14].addons[1].name).to.equal('ember-ng');
     });
 
     it('addons get passed the project instance', function() {
       let addons = project.addons;
 
-      addons.forEach(addon => expect(addon.project).to.eql(project));
+      expect(addons[1].project).to.equal(project);
     });
 
     it('returns an instance of an addon that uses `ember-addon-main`', function() {
       let addons = project.addons;
 
-      expect(!!addons.find(a => a.name === 'ember-random-addon')).to.be;
+      expect(addons[10].name).to.equal('ember-random-addon');
     });
 
     it('returns the default blueprints path', function() {
@@ -407,8 +411,8 @@ describe('models/project.js', function() {
     it('returns an instance of an addon with an object export', function() {
       let addons = project.addons;
 
-      let addon = addons.find(a => a.name === 'ember-generated-with-export-addon');
-      expect(addon instanceof Addon).to.equal(true);
+      expect(addons[13] instanceof Addon).to.equal(true);
+      expect(addons[13].name).to.equal('ember-generated-with-export-addon');
     });
 
     it('adds the project itself if it is an addon', function() {
@@ -551,7 +555,7 @@ describe('models/project.js', function() {
     });
   });
 
-  if (experiments.MODULE_UNIFICATION) {
+  if (isExperimentEnabled('MODULE_UNIFICATION')) {
     describe('isModuleUnification', function() {
       beforeEach(function() {
         projectPath = `${process.cwd()}/tmp/test-app`;
