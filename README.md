@@ -22,6 +22,12 @@ ember-cli
 
 The Ember.js command line utility.
 
+DATABOX FORK INFO
+------------------------------------------------------------------------------
+
+The build system has been adjusted to build a `vendor.js` and an `<app-name>.js`
+asset for each sub-app, while allowing to set `sharedFiles` on `ember-app` object,
+which lets the sub-app to inherit any file from the `app` folder.
 
 Features
 ------------------------------------------------------------------------------
