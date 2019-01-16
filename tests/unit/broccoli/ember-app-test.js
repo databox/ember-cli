@@ -1,5 +1,3 @@
-/* global escape */
-
 'use strict';
 
 const co = require('co');
@@ -8,6 +6,7 @@ const Project = require('../../../lib/models/project');
 const expect = require('chai').expect;
 const td = require('testdouble');
 const broccoliTestHelper = require('broccoli-test-helper');
+const { WatchedDir, UnwatchedDir } = require('broccoli-source');
 
 const buildOutput = broccoliTestHelper.buildOutput;
 const createTempDir = broccoliTestHelper.createTempDir;
@@ -15,6 +14,7 @@ const createTempDir = broccoliTestHelper.createTempDir;
 const MockCLI = require('../../helpers/mock-cli');
 const { isExperimentEnabled } = require('../../../lib/experiments');
 const mergeTrees = require('../../../lib/broccoli/merge-trees');
+const BroccoliMergeTrees = require('broccoli-merge-trees');
 
 let EmberApp = require('../../../lib/broccoli/ember-app');
 
@@ -989,9 +989,15 @@ describe('EmberApp', function() {
         app.toArray = td.function();
         app._legacyPackage = td.function();
 
-        td.when(app._legacyPackage(), { ignoreExtraArgs: true }).thenReturn('bar');
         td.when(app.toArray(), { ignoreExtraArgs: true }).thenReturn([]);
-        td.when(addon.postprocessTree('all', 'bar')).thenReturn('derp');
+        td.when(app._legacyPackage(), { ignoreExtraArgs: true }).thenReturn('bar');
+        td.when(
+          addon.postprocessTree(
+            'all',
+            td.matchers.argThat(t => t.constructor === BroccoliMergeTrees &&
+                                      t._inputNodes.length === 1 && t._inputNodes[0] === 'bar')
+          )
+        ).thenReturn('derp');
 
         expect(app.toTree()).to.equal('derp');
       });
@@ -1003,7 +1009,13 @@ describe('EmberApp', function() {
 
         td.when(app._legacyPackage(), { ignoreExtraArgs: true }).thenReturn('bar');
         td.when(app.toArray(), { ignoreExtraArgs: true }).thenReturn([]);
-        td.when(app.addonPostprocessTree('all', 'bar')).thenReturn('blap');
+        td.when(
+          app.addonPostprocessTree(
+            'all',
+            td.matchers.argThat(t => t.constructor === BroccoliMergeTrees &&
+                                      t._inputNodes.length === 1 && t._inputNodes[0] === 'bar')
+          )
+        ).thenReturn('blap');
 
         expect(app.toTree()).to.equal('blap');
       });
@@ -1442,6 +1454,31 @@ describe('EmberApp', function() {
     expect(() => {
       app.import('vendor/b/c/foo.js', { type: 'javascript' });
     }).to.throw(/You must pass either `vendor` or `test` for options.type in your call to `app.import` for file: foo.js/);
+  });
+
+  describe('_initOptions', function() {
+    it('sets the tests directory as watched when tests are enabled', function() {
+      let app = new EmberApp({
+        project,
+      });
+
+      app._initOptions({
+        tests: true,
+      });
+
+      expect(app.options.trees.tests).to.be.an.instanceOf(WatchedDir);
+    });
+    it('sets the tests directory as unwatched when tests are disabled', function() {
+      let app = new EmberApp({
+        project,
+      });
+
+      app._initOptions({
+        tests: false,
+      });
+
+      expect(app.options.trees.tests).to.be.an.instanceOf(UnwatchedDir);
+    });
   });
 
   describe('_resolveLocal', function() {

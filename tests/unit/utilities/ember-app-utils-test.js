@@ -7,6 +7,7 @@ const expect = require('chai').expect;
 const emberAppUtils = require('../../../lib/utilities/ember-app-utils');
 
 const contentFor = emberAppUtils.contentFor;
+const configReplacePatterns = emberAppUtils.configReplacePatterns;
 const normalizeUrl = emberAppUtils.normalizeUrl;
 const calculateBaseTag = emberAppUtils.calculateBaseTag;
 const convertObjectToString = emberAppUtils.convertObjectToString;
@@ -18,13 +19,29 @@ describe('ember-app-utils', function() {
     };
 
     let defaultMatch = '{{content-for \'head\'}}';
-    let escapedConfig = escape(JSON.stringify(config));
+    let escapedConfig = encodeURIComponent(JSON.stringify(config));
     let defaultOptions = {
       storeConfigInMeta: true,
       autoRun: true,
       addons: [],
       isModuleUnification: false,
     };
+
+    it('`content-for` regex returns all matches presents in a same line', function() {
+      const contentForRegex = configReplacePatterns(defaultOptions)[2].match;
+      const content = '{{content-for \'foo\'}} {{content-for \'bar\'}}';
+      const results = [];
+      let match;
+
+      while ((match = contentForRegex.exec(content)) !== null) {
+        results.push(match);
+      }
+
+      expect(results).to.deep.equal([
+        ['{{content-for \'foo\'}}', 'foo'],
+        ['{{content-for \'bar\'}}', 'bar'],
+      ]);
+    });
 
     it('returns an empty string if invalid type is specified', function() {
       expect(contentFor(config, defaultMatch, 'foo', defaultOptions)).to.equal('');
@@ -40,6 +57,18 @@ describe('ember-app-utils', function() {
         expect(
           actual,
           '`<meta>` tag was included by default'
+        ).to.contain(expected);
+      });
+
+      it('handles multibyte characters in `<meta>` tag', function() {
+        let configWithMultibyteChars = { modulePrefix: 'cool-å' };
+        let actual = contentFor(configWithMultibyteChars, defaultMatch, 'head', defaultOptions);
+        let escapedConfig = encodeURIComponent(JSON.stringify(configWithMultibyteChars));
+        let expected = `<meta name="cool-å/config/environment" content="${escapedConfig}" />`;
+
+        expect(
+          actual,
+          '`<meta>` tag was included with multibyte characters'
         ).to.contain(expected);
       });
 
