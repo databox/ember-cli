@@ -37,7 +37,7 @@ module.exports = {
   updatePackageJson(content) {
     let contents = JSON.parse(content);
 
-    contents.name = this.locals(this.options).addonName;
+    contents.name = stringUtil.dasherize(this.options.entity.name);
     contents.description = this.description;
     delete contents.private;
     contents.scripts = contents.scripts || {};
@@ -68,9 +68,6 @@ module.exports = {
 
     // add `ember-disable-prototype-extensions` to addons by default
     contents.devDependencies['ember-disable-prototype-extensions'] = '^1.1.3';
-
-    // add `eslint-plugin-node` to addons by default
-    contents.devDependencies['eslint-plugin-node'] = '^7.0.1';
 
     // add ember-try
     contents.devDependencies['ember-try'] = '^1.0.0';
@@ -167,7 +164,7 @@ module.exports = {
 
   fileMapper(path) {
     for (let pattern in this.fileMap) {
-      if ((new RegExp(pattern)).test(path)) {
+      if (new RegExp(pattern).test(path)) {
         return this.fileMap[pattern].replace(':path', path);
       }
     }

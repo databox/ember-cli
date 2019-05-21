@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   parserOptions: {
-    ecmaVersion: 2017,
+    ecmaVersion: 2018,
     sourceType: 'module'
   },
   plugins: [
@@ -27,7 +27,8 @@ module.exports = {
         'testem.js',
         'blueprints/*/index.js',
         'config/**/*.js'<% if (blueprint === 'app') { %>,
-        'lib/*/index.js'<% } %><% if (blueprint !== 'app') { %>,
+        'lib/*/index.js',
+        'server/**/*.js'<% } else { %>,
         'tests/dummy/config/**/*.js'<% } %>
       ],<% if (blueprint !== 'app') { %>
       excludedFiles: [
@@ -43,11 +44,15 @@ module.exports = {
       env: {
         browser: false,
         node: true
-      }<% if (blueprint !== 'app') { %>,
+      },
       plugins: ['node'],
       rules: Object.assign({}, require('eslint-plugin-node').configs.recommended.rules, {
-        // add your custom rules and overrides for node files here
-      })<% } %>
+        // add your custom rules and overrides for node files here<% if (blueprint === 'app') { %>
+
+        // this can be removed once the following is fixed
+        // https://github.com/mysticatea/eslint-plugin-node/issues/77
+        'node/no-unpublished-require': 'off'<% } %>
+      })
     }
   ]
 };

@@ -14,16 +14,13 @@
  */
 
 let EOL = require('os').EOL;
-let multiline = require('multiline');
-let RSVP = require('rsvp');
 let GitHubApi = require('@octokit/rest');
 
 let github = new GitHubApi({ version: '3.0.0' });
-let compareCommits = RSVP.denodeify(github.repos.compareCommits);
 let currentVersion = `v${require('../package').version}`;
 let branch = process.argv[2] || 'master';
 
-compareCommits({
+github.repos.compareCommits({
   owner: 'ember-cli',
   repo: 'ember-cli',
   base: currentVersion,
@@ -70,7 +67,7 @@ compareCommits({
 });
 
 function generateChangelog(contributions) {
-  let header = multiline(() => { /*
+  let header = `
 The following changes are required if you are upgrading from the previous
 version:
 
@@ -82,7 +79,7 @@ version:
   + No changes required
 
 #### Community Contributions
-  */ });
+`;
 
   let footer = 'Thank you to all who took the time to contribute!';
 

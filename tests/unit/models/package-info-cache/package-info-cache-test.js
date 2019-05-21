@@ -2,7 +2,6 @@
 
 const path = require('path');
 const expect = require('chai').expect;
-const PackageInfoCache = require('../../../../lib/models/package-info-cache');
 const PackageInfo = require('../../../../lib/models/package-info-cache/package-info');
 const Project = require('../../../../lib/models/project');
 const addonFixturePath = path.resolve(__dirname, '../../../fixtures/addon');
@@ -21,30 +20,32 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
 
   describe('lexicographically', function() {
     it('works', function() {
-      expect([
-        { name: 'c'     },
-        { foo: 2        },
-        { name: 'z/b/z' },
-        { name: 'z/b/d' },
-        { foo: 1        },
-        { name: 'z/a/d' },
+      expect(
+        [
+          { name: 'c' },
+          { foo: 2 },
+          { name: 'z/b/z' },
+          { name: 'z/b/d' },
+          { foo: 1 },
+          { name: 'z/a/d' },
+          { name: 'z/a/c' },
+          { name: 'b' },
+          { name: 'z/a/d' },
+          { name: 'a' },
+          { foo: 3 },
+        ].sort(PackageInfo.lexicographically)
+      ).to.eql([
+        { name: 'a' },
+        { name: 'b' },
+        { name: 'c' },
         { name: 'z/a/c' },
-        { name: 'b'     },
         { name: 'z/a/d' },
-        { name: 'a'     },
-        { foo: 3        },
-      ].sort(PackageInfo.lexicographically)).to.eql([
-        { name: 'a'      },
-        { name: 'b'      },
-        { name: 'c'      },
-        { name: 'z/a/c'  },
-        { name: 'z/a/d'  },
-        { name: 'z/a/d'  },
-        { name: 'z/b/d'  },
-        { name: 'z/b/z'  },
-        { foo: 2         },
-        { foo: 1         },
-        { foo: 3         },
+        { name: 'z/a/d' },
+        { name: 'z/b/d' },
+        { name: 'z/b/z' },
+        { foo: 2 },
+        { foo: 1 },
+        { foo: 3 },
       ]);
     });
   });
@@ -56,22 +57,9 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       let c = { name: 'c' };
 
       let result = [];
-      [
-        a,
-        a,
-        a,
-        b,
-        a,
-        c,
-        a,
-        c,
-      ].forEach(entry => PackageInfo.pushUnique(result, entry));
+      [a, a, a, b, a, c, a, c].forEach(entry => PackageInfo.pushUnique(result, entry));
 
-      expect(result).to.eql([
-        b,
-        a,
-        c,
-      ]);
+      expect(result).to.eql([b, a, c]);
     });
   });
 
@@ -184,7 +172,6 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(nodeModules.entries).to.exist;
       expect(Object.keys(nodeModules.entries).length).to.equal(9);
     });
-
   });
 
   describe('packageInfo', function() {
@@ -367,7 +354,9 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(emberCliStringUtilsPkgInfo).to.exist;
 
       let emberCliRealPath = path.resolve(`${projectPackageInfo.realPath}/../../../../`);
-      expect(emberCliStringUtilsPkgInfo.realPath).to.equal(path.join(emberCliRealPath, 'node_modules', 'ember-cli-string-utils'));
+      expect(emberCliStringUtilsPkgInfo.realPath).to.equal(
+        path.join(emberCliRealPath, 'node_modules', 'ember-cli-string-utils')
+      );
     });
 
     it('shows projectPackageInfo finds an external dependency involving a scope', function() {
@@ -468,7 +457,7 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(resolvedFile).to.equal('index.js');
     });
 
-    it('doesn\'t add .js if it is .js', function() {
+    it("doesn't add .js if it is .js", function() {
       packageContents['ember-addon']['main'] = 'index.js';
 
       project = new Project(projectPath, packageContents, ui, cli);
@@ -478,7 +467,7 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(resolvedFile).to.equal('index.js');
     });
 
-    it('doesn\'t add .js if it has another extension', function() {
+    it("doesn't add .js if it has another extension", function() {
       packageContents['ember-addon']['main'] = 'index.coffee';
 
       project = new Project(projectPath, packageContents, ui, cli);
@@ -530,50 +519,6 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
 
       resolvedFile = projectPackageInfo.addonMainPath;
       expect(resolvedFile).to.equal(path.join(projectPath, 'index.js'));
-    });
-  });
-
-  describe('getRealFilePath tests', function() {
-    let fakePackageJsonPath;
-
-    beforeEach(function() {
-      projectPath = path.resolve(addonFixturePath, 'external-dependency');
-      packageJsonPath = path.join(projectPath, 'package.json');
-      fakePackageJsonPath = path.join(projectPath, 'foozleberry.js');
-    });
-
-    it('getRealFilePath(real package.json file) exists', function() {
-      expect(PackageInfoCache.getRealFilePath(packageJsonPath)).to.exist;
-    });
-
-    it('getRealFilePath(fake file path) does not exist', function() {
-      expect(PackageInfoCache.getRealFilePath(fakePackageJsonPath)).not.to.exist;
-    });
-
-    it('getRealFilePath(dir path) does not exist', function() {
-      expect(PackageInfoCache.getRealFilePath(projectPath)).not.to.exist;
-    });
-  });
-
-  describe('getRealDirectoryPath tests', function() {
-    let fakePackageJsonPath;
-
-    beforeEach(function() {
-      projectPath = path.resolve(addonFixturePath, 'external-dependency');
-      packageJsonPath = path.join(projectPath, 'package.json');
-      fakePackageJsonPath = path.join(projectPath, 'foozleberry.js');
-    });
-
-    it('getRealDirectoryPath(real package directory) exists', function() {
-      expect(PackageInfoCache.getRealDirectoryPath(projectPath)).to.exist;
-    });
-
-    it('getRealDirectoryPath(fake path) does not exist', function() {
-      expect(PackageInfoCache.getRealDirectoryPath(fakePackageJsonPath)).not.to.exist;
-    });
-
-    it('getRealDirectoryPath(real file path) does not exist', function() {
-      expect(PackageInfoCache.getRealDirectoryPath(packageJsonPath)).not.to.exist;
     });
   });
 });
