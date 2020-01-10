@@ -13,6 +13,63 @@ const calculateBaseTag = emberAppUtils.calculateBaseTag;
 const convertObjectToString = emberAppUtils.convertObjectToString;
 
 describe('ember-app-utils', function() {
+  describe(`rootURL`, function() {
+    it('`rootURL` regex accepts space-padded padded variation', function() {
+      const regex = configReplacePatterns()[0].match;
+      const variations = ['{{rootURL}}', '{{ rootURL }}', 'foo'];
+      const results = [];
+
+      variations.forEach(variation => {
+        const match = variation.match(regex);
+
+        if (match !== null) {
+          results.push(match[0]);
+        }
+      });
+
+      variations.pop();
+      expect(results).to.deep.equal(variations);
+    });
+  });
+
+  describe(`EMBER_ENV`, function() {
+    it('`EMBER_ENV` regex accepts space-padded padded variation', function() {
+      const regex = configReplacePatterns()[1].match;
+      const variations = ['{{EMBER_ENV}}', '{{ EMBER_ENV }}', 'foo'];
+      const results = [];
+
+      variations.forEach(variation => {
+        const match = variation.match(regex);
+
+        if (match !== null) {
+          results.push(match[0]);
+        }
+      });
+
+      variations.pop();
+      expect(results).to.deep.equal(variations);
+    });
+  });
+
+  describe(`MODULE_PREFIX`, function() {
+    it('`MODULE_PREFIX` regex accepts space-padded padded variation', function() {
+      const regex = configReplacePatterns()[3].match;
+      const variations = ['{{MODULE_PREFIX}}', '{{ MODULE_PREFIX }}', 'foo'];
+      const results = [];
+
+      variations.forEach(variation => {
+        const match = variation.match(regex);
+
+        if (match !== null) {
+          results.push(match[0]);
+        }
+      });
+
+      variations.pop();
+      expect(results).to.deep.equal(variations);
+    });
+  });
+
   describe(`contentFor`, function() {
     let config = {
       modulePrefix: 'cool-foo',
@@ -37,7 +94,10 @@ describe('ember-app-utils', function() {
         results.push(match);
       }
 
-      expect(results).to.deep.equal([["{{content-for 'foo'}}", 'foo'], ["{{content-for 'bar'}}", 'bar']]);
+      expect(results).to.deep.equal([
+        ["{{content-for 'foo'}}", 'foo'],
+        ["{{content-for 'bar'}}", 'bar'],
+      ]);
     });
 
     it('returns an empty string if invalid type is specified', function() {
@@ -134,7 +194,7 @@ describe('ember-app-utils', function() {
       it('returns application bootstrap snippet by default', function() {
         let output = contentFor(config, defaultMatch, 'app-boot', defaultOptions);
 
-        expect(output, 'includes applicaton bootstrap snippet').to.contain(
+        expect(output, 'includes application bootstrap snippet').to.contain(
           'require("cool-foo/app")["default"].create({});'
         );
       });
@@ -143,7 +203,7 @@ describe('ember-app-utils', function() {
         let options = Object.assign({}, defaultOptions, { isModuleUnification: true });
         let output = contentFor(config, defaultMatch, 'app-boot', options);
 
-        expect(output, 'includes applicaton bootstrap snippet').to.contain(
+        expect(output, 'includes application bootstrap snippet').to.contain(
           'require("cool-foo/src/main")["default"].create({});'
         );
       });
@@ -152,7 +212,7 @@ describe('ember-app-utils', function() {
         let options = Object.assign({}, defaultOptions, { autoRun: false });
         let output = contentFor(config, defaultMatch, 'app-boot', options);
 
-        expect(output, 'includes applicaton bootstrap snippet').to.equal('');
+        expect(output, 'includes application bootstrap snippet').to.equal('');
       });
     });
 

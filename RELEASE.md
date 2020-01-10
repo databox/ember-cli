@@ -44,7 +44,7 @@ Follow these steps if you're releasing a new minor or major version (e.g. from `
 # Switch to "release" branch and reset it to "origin/beta"
 git checkout -B release --track origin/beta
 
-# Merge any unmerged changes from "origin/release" back in
+# Merge any unreleased changes from "origin/release" back in
 git merge origin/release
 
 # ... do the stable release ...
@@ -170,15 +170,7 @@ ember serve
 
 ### Update Artifacts
 
-* if normal release
-  * run `./dev/add-to-output-repos.sh`
-* if incremental beta release
-  * run `./dev/add-to-output-repos.sh beta`
-* if promoting canary to beta
-  * run `./dev/add-to-output-repos.sh beta fork`
-* copy the [`ember new` diff] and [`ember addon` diff] lines from the previous
-  release changelog and paste into the current, then update the url with the
-  newer tags
+* run `node ./dev/update-output-repos.js`
 
 ### Publish
 

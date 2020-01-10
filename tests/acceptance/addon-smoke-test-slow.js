@@ -1,6 +1,5 @@
 'use strict';
 
-const co = require('co');
 const Promise = require('rsvp').Promise;
 const path = require('path');
 const fs = require('fs-extra');
@@ -51,24 +50,22 @@ describe('Acceptance: addon-smoke-test', function() {
     delete process.env.JOBS;
   });
 
-  it('generates package.json with proper metadata', function() {
-    let packageContents = fs.readJsonSync('package.json');
+  if (!isExperimentEnabled('MODULE_UNIFICATION')) {
+    it('generates package.json with proper metadata', function() {
+      let packageContents = fs.readJsonSync('package.json');
 
-    expect(packageContents.name).to.equal(addonName);
-    expect(packageContents.private).to.be.an('undefined');
-    expect(packageContents.keywords).to.deep.equal(['ember-addon']);
-    expect(packageContents['ember-addon']).to.deep.equal({ configPath: 'tests/dummy/config' });
-  });
+      expect(packageContents.name).to.equal(addonName);
+      expect(packageContents.private).to.be.an('undefined');
+      expect(packageContents.keywords).to.deep.equal(['ember-addon']);
+      expect(packageContents['ember-addon']).to.deep.equal({ configPath: 'tests/dummy/config' });
+    });
 
-  (isExperimentEnabled('MODULE_UNIFICATION') ? it.skip : it)('ember addon foo, clean from scratch', function() {
-    return ember(['test']);
-  });
+    it('ember addon foo, clean from scratch', function() {
+      return ember(['test']);
+    });
 
-  it(
-    'works in most common scenarios for an example addon',
-    co.wrap(function*() {
-      let fixtureFile = isExperimentEnabled('MODULE_UNIFICATION') ? 'kitchen-sink-mu' : 'kitchen-sink';
-      yield copyFixtureFiles(`addon/${fixtureFile}`);
+    it('works in most common scenarios for an example addon', async function() {
+      await copyFixtureFiles('addon/kitchen-sink');
 
       let packageJsonPath = path.join(addonRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
@@ -81,7 +78,7 @@ describe('Acceptance: addon-smoke-test', function() {
 
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      let result = yield runCommand('node_modules/ember-cli/bin/ember', 'build');
+      let result = await runCommand('node_modules/ember-cli/bin/ember', 'build');
 
       expect(result.code).to.eql(0);
       let contents;
@@ -98,15 +95,12 @@ describe('Acceptance: addon-smoke-test', function() {
       contents = fs.readFileSync(robotsPath, { encoding: 'utf8' });
       expect(contents).to.contain('tests/dummy/public/robots.txt is present');
 
-      result = yield runCommand('node_modules/ember-cli/bin/ember', 'test');
+      result = await runCommand('node_modules/ember-cli/bin/ember', 'test');
 
       expect(result.code).to.eql(0);
-    })
-  );
+    });
 
-  it(
-    'npm pack does not include unnecessary files',
-    co.wrap(function*() {
+    it('npm pack does not include unnecessary files', async function() {
       let handleError = function(error, commandName) {
         if (error.code === 'ENOENT') {
           console.warn(chalk.yellow(`      Your system does not provide ${commandName} -> Skipped this test.`));
@@ -116,17 +110,19 @@ describe('Acceptance: addon-smoke-test', function() {
       };
 
       try {
-        yield npmPack();
+        await npmPack();
       } catch (error) {
         return handleError(error, 'npm');
       }
 
       let output;
       try {
-        output = yield tar();
+        output = await tar();
       } catch (error) {
         return handleError(error, 'tar');
       }
+
+      let necessaryFiles = ['package.json', 'index.js', 'LICENSE.md', 'README.md', 'config/environment.js'];
 
       let unnecessaryFiles = [
         '.gitkeep',
@@ -138,42 +134,23 @@ describe('Acceptance: addon-smoke-test', function() {
         '.bowerrc',
       ];
 
-      let unnecessaryFolders = ['tests/', 'bower_components/'];
+      let unnecessaryFolders = [/^tests\//, /^bower_components\//];
 
-      let outputFiles = output.split('\n');
-      expect(outputFiles).to.not.contain(unnecessaryFiles);
-      expect(outputFiles).to.not.contain(unnecessaryFolders);
-    })
-  );
+      let outputFiles = output
+        .split('\n')
+        .filter(Boolean)
+        .map(f => f.replace(/^package\//, ''));
 
-  if (isExperimentEnabled('MODULE_UNIFICATION')) {
-    it(
-      'can run a MU unit test with a relative import',
-      co.wrap(function*() {
-        yield copyFixtureFiles('brocfile-tests/mu-unit-test-with-relative-import');
+      expect(outputFiles, 'verify our assumptions about the output structure').to.include.members(necessaryFiles);
 
-        let packageJsonPath = path.join(addonRoot, 'package.json');
-        let packageJson = fs.readJsonSync(packageJsonPath);
+      expect(outputFiles).to.not.have.members(unnecessaryFiles);
 
-        packageJson.dependencies = packageJson.dependencies || {};
-        // add HTMLBars for templates (generators do this automatically when components/templates are added)
-        packageJson.dependencies['ember-cli-htmlbars'] = 'latest';
-
-        fs.writeJsonSync(packageJsonPath, packageJson);
-
-        let result = yield runCommand('node_modules/ember-cli/bin/ember', 'build');
-        expect(result.code).to.eql(0);
-
-        let appFileContents = fs.readFileSync(path.join(addonRoot, 'dist', 'assets', 'tests.js'), {
-          encoding: 'utf8',
-        });
-
-        expect(appFileContents).to.include('Unit | Utility | string');
-
-        result = yield runCommand('node_modules/ember-cli/bin/ember', 'test');
-        expect(result.code).to.eql(0);
-      })
-    );
+      for (let unnecessaryFolder of unnecessaryFolders) {
+        for (let outputFile of outputFiles) {
+          expect(outputFile).to.not.match(unnecessaryFolder);
+        }
+      }
+    });
   }
 });
 

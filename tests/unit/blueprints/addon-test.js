@@ -81,8 +81,8 @@ describe('blueprint - addon', function() {
   "dependencies": {},\n\
   "devDependencies": {\n\
     "ember-disable-prototype-extensions": "^1.1.3",\n\
-    "ember-source-channel-url": "^1.1.0",\n\
-    "ember-try": "^1.0.0"\n\
+    "ember-source-channel-url": "^2.0.1",\n\
+    "ember-try": "^1.4.0"\n\
   },\n\
   "ember-addon": {\n\
     "configPath": "tests/dummy/config"\n\
@@ -123,6 +123,22 @@ describe('blueprint - addon', function() {
           'ember-cli-babel': '1.0.0',
         });
         expect(json.devDependencies).to.not.have.property('ember-cli-babel');
+      });
+
+      it('moves `ember-cli-htmlbars` from devDependencies to dependencies', function() {
+        let output = blueprint.updatePackageJson(
+          JSON.stringify({
+            devDependencies: {
+              'ember-cli-htmlbars': '1.0.0',
+            },
+          })
+        );
+
+        let json = JSON.parse(output);
+        expect(json.dependencies).to.deep.equal({
+          'ember-cli-htmlbars': '1.0.0',
+        });
+        expect(json.devDependencies).to.not.have.property('ember-cli-htmlbars');
       });
 
       it('does not push multiple `ember-addon` keywords', function() {

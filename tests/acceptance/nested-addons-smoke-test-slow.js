@@ -1,9 +1,9 @@
 'use strict';
 
-const co = require('co');
 const path = require('path');
 const fs = require('fs-extra');
 
+const { isExperimentEnabled } = require('../../lib/experiments');
 const runCommand = require('../helpers/run-command');
 const acceptance = require('../helpers/acceptance');
 const copyFixtureFiles = require('../helpers/copy-fixture-files');
@@ -38,17 +38,16 @@ describe('Acceptance: nested-addons-smoke-test', function() {
     expect(dir(appRoot)).to.not.exist;
   });
 
-  it(
-    'addons with nested addons compile correctly',
-    co.wrap(function*() {
-      yield copyFixtureFiles('addon/with-nested-addons');
+  if (!isExperimentEnabled('MODULE_UNIFICATION')) {
+    it('addons with nested addons compile correctly', async function() {
+      await copyFixtureFiles('addon/with-nested-addons');
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
       packageJson.devDependencies['ember-top-addon'] = 'latest';
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/vendor.js')).to.contain('INNER_ADDON_IMPORT_WITH_APP_IMPORT');
       expect(file('dist/assets/vendor.js')).to.contain('INNER_ADDON_IMPORT_WITH_THIS_IMPORT');
@@ -72,6 +71,6 @@ describe('Acceptance: nested-addons-smoke-test', function() {
       expect(file('dist/assets/vendor.js')).to.contain(
         'RAW node_modules/ember-top-addon/node_modules/ember-inner-addon/addon/index.js'
       );
-    })
-  );
+    });
+  }
 });

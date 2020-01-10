@@ -1,6 +1,5 @@
 'use strict';
 
-const co = require('co');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -21,8 +20,6 @@ let dir = chai.dir;
 let appName = 'some-cool-app';
 let appRoot;
 
-let fixturePrefix = isExperimentEnabled('MODULE_UNIFICATION') ? 'mu-app' : 'app';
-
 describe('Acceptance: preprocessor-smoke-test', function() {
   this.timeout(360000);
 
@@ -41,10 +38,9 @@ describe('Acceptance: preprocessor-smoke-test', function() {
     expect(dir(appRoot)).to.not.exist;
   });
 
-  it(
-    'addons with standard preprocessors compile correctly',
-    co.wrap(function*() {
-      yield copyFixtureFiles(`preprocessor-tests/${fixturePrefix}-with-addon-with-preprocessors`);
+  if (!isExperimentEnabled('MODULE_UNIFICATION')) {
+    it('addons with standard preprocessors compile correctly', async function() {
+      await copyFixtureFiles(`preprocessor-tests/app-with-addon-with-preprocessors`);
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
@@ -52,17 +48,14 @@ describe('Acceptance: preprocessor-smoke-test', function() {
       packageJson.devDependencies['ember-cool-addon'] = 'latest';
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/some-cool-app.css')).to.contain('app styles included');
       expect(file('dist/assets/vendor.css')).to.contain('addon styles included');
-    })
-  );
+    });
 
-  it(
-    'addon registry entries are added in the proper order',
-    co.wrap(function*() {
-      yield copyFixtureFiles(`preprocessor-tests/${fixturePrefix}-registry-ordering`);
+    it('addon registry entries are added in the proper order', async function() {
+      await copyFixtureFiles(`preprocessor-tests/app-registry-ordering`);
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
@@ -70,19 +63,16 @@ describe('Acceptance: preprocessor-smoke-test', function() {
       packageJson.devDependencies['second-dummy-preprocessor'] = 'latest';
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/some-cool-app.js'))
         .to.contain('replacedByPreprocessor', 'token should have been replaced in app bundle')
         .to.not.contain('__SECOND_PREPROCESSOR_REPLACEMENT_TOKEN__', 'token should not be contained')
         .to.not.contain('__FIRST_PREPROCESSOR_REPLACEMENT_TOKEN__', 'token should not be contained');
-    })
-  );
+    });
 
-  it(
-    'addons without preprocessors compile correctly',
-    co.wrap(function*() {
-      yield copyFixtureFiles(`preprocessor-tests/${fixturePrefix}-with-addon-without-preprocessors`);
+    it('addons without preprocessors compile correctly', async function() {
+      await copyFixtureFiles(`preprocessor-tests/app-with-addon-without-preprocessors`);
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
@@ -90,31 +80,28 @@ describe('Acceptance: preprocessor-smoke-test', function() {
       packageJson.devDependencies['ember-cool-addon'] = 'latest';
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/some-cool-app.css')).to.contain('app styles included');
       expect(file('dist/assets/vendor.css')).to.contain('addon styles included');
-    })
-  );
+    });
 
-  /*
+    /*
     [ app ]  -> [ addon ] -> [ preprocessor addon ]
       |             |
       |             |--- preprocessor applies to this
       |
       |-- preprocessor should not apply to this
   */
-  it(
-    'addons depending on preprocessor addon preprocesses addon but not app',
-    co.wrap(function*() {
-      yield copyFixtureFiles(`preprocessor-tests/${fixturePrefix}-with-addon-with-preprocessors-2`);
+    it('addons depending on preprocessor addon preprocesses addon but not app', async function() {
+      await copyFixtureFiles(`preprocessor-tests/app-with-addon-with-preprocessors-2`);
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
       packageJson.devDependencies['ember-cool-addon'] = 'latest';
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/some-cool-app.js'))
         .to.contain('__PREPROCESSOR_REPLACEMENT_TOKEN__', 'token should not have been replaced in app bundle')
@@ -123,10 +110,9 @@ describe('Acceptance: preprocessor-smoke-test', function() {
       expect(file('dist/assets/vendor.js'))
         .to.contain('replacedByPreprocessor', 'token should have been replaced in vendor bundle')
         .to.not.contain('__PREPROCESSOR_REPLACEMENT_TOKEN__', 'token should have been replaced in vendor bundle');
-    })
-  );
+    });
 
-  /*
+    /*
     [ app ]  -> [ addon ] ->  [ addon ] -> [ preprocessor addon ]
       |             |             |
       |             |             |--- preprocessor applies to this
@@ -135,10 +121,8 @@ describe('Acceptance: preprocessor-smoke-test', function() {
       |
       |-- preprocessor should not apply to this
   */
-  it(
-    'addon N levels deep depending on preprocessor preprocesses that parent addon only',
-    co.wrap(function*() {
-      yield copyFixtureFiles(`preprocessor-tests/${fixturePrefix}-with-addon-with-preprocessors-3`);
+    it('addon N levels deep depending on preprocessor preprocesses that parent addon only', async function() {
+      await copyFixtureFiles(`preprocessor-tests/app-with-addon-with-preprocessors-3`);
 
       let packageJsonPath = path.join(appRoot, 'package.json');
       let packageJson = fs.readJsonSync(packageJsonPath);
@@ -146,7 +130,7 @@ describe('Acceptance: preprocessor-smoke-test', function() {
 
       fs.writeJsonSync(packageJsonPath, packageJson);
 
-      yield runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
+      await runCommand(path.join('.', 'node_modules', 'ember-cli', 'bin', 'ember'), 'build');
 
       expect(file('dist/assets/some-cool-app.js'))
         .to.contain('__PREPROCESSOR_REPLACEMENT_TOKEN__', 'token should not have been replaced in app bundle')
@@ -163,6 +147,6 @@ describe('Acceptance: preprocessor-smoke-test', function() {
           'shallow: "replacedByPreprocessor"',
           'token should not have been replaced in shallow component'
         );
-    })
-  );
+    });
+  }
 });

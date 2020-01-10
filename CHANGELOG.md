@@ -1,17 +1,167 @@
 # ember-cli Changelog
 
-## v3.11.0-beta.1
 
 #### Blueprint Changes
 
-- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.10.0...v3.11.0-beta.1)
-- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.10.0...v3.11.0-beta.1)
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.14.0...v3.15.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.14.0...v3.15.0)
+
+#### Changelog
+
+- [#8963](https://github.com/ember-cli/ember-cli/pull/8963) Remove `app/templates/components` [@chancancode](https://github.com/chancancode)
+- [#8964](https://github.com/ember-cli/ember-cli/pull/8964) Add support for `ember new @scope-here/name-here`. [@rwjblue](https://github.com/rwjblue)
+- [#8965](https://github.com/ember-cli/ember-cli/pull/8965) Update ember-resolver to v7.0.0. [@rwjblue](https://github.com/rwjblue)
+- [#8971](https://github.com/ember-cli/ember-cli/pull/8971) Add an ember-try scenario for Ember "classic" (pre-octane). [@rwjblue](https://github.com/rwjblue)
+- [#8972](https://github.com/ember-cli/ember-cli/pull/8972) Update ember-data to 3.15.0. [@rwjblue](https://github.com/rwjblue)
+- [#8933](https://github.com/ember-cli/ember-cli/pull/8933) Remove `app/resolver.js` in favor of importing in `app/app.js` [@rwjblue](https://github.com/rwjblue)
+- [#8945](https://github.com/ember-cli/ember-cli/pull/8945) Fix issue with addon `.travis.yml` configuration when using `npm` [@kellyselden](https://github.com/kellyselden)
+- [#8946](https://github.com/ember-cli/ember-cli/pull/8946) Drop testing of ember-source@3.4 in the addon blueprints ember-try config [@kellyselden](https://github.com/kellyselden)
+- [#8946](https://github.com/ember-cli/ember-cli/pull/8946) Add testing of ember-source@3.12 in the addon blueprints ember-try config [@kellyselden](https://github.com/kellyselden)
+- [#8959](https://github.com/ember-cli/ember-cli/pull/8959) Fix issue with addon discovery when npm/yarn leave empty directories in resolvable locations [@stefanpenner](https://github.com/stefanpenner)
+- [#8961](https://github.com/ember-cli/ember-cli/pull/8961) Prepare for Octane release in 3.15 [@rwjblue](https://github.com/rwjblue)
+  * Adds `ember` property to `package.json` to implement [emberjs/rfcs#558](https://github.com/emberjs/rfcs/pull/558)
+  * Adds `@glimmer/component@1.0.0` as a development dependency for both apps and addons
+  * Updates `ember-try` to at least 1.4.0 in order to support `config/ember-try.js` scenarios with `ember` `package.json` property (mentioned in emberjs/rfcs#558)
+  * Enables Octane related optional features
+  * Updates ember-template-lint configuration to use `octane` preset
+  * Update to ember-source@3.15 stable
+  * Updates all packages in the application blueprint to their latest version
+- [#8827](https://github.com/ember-cli/ember-cli/pull/8827) Remove module-unification blueprints [@dcyriller](https://github.com/dcyriller)
+- [#8878](https://github.com/ember-cli/ember-cli/pull/8878) Adds flag to throw an error for invalid addon locations [@tmquinn](https://github.com/tmquinn)
+- [#8906](https://github.com/ember-cli/ember-cli/pull/8906) Enable broccoli memoization by default in Ember-CLI [@SparshithNR](https://github.com/SparshithNR)
+- [#8917](https://github.com/ember-cli/ember-cli/pull/8917) Update CI configuration for applications using `npm` to run a "floating dependencies" test. [@kellyselden](https://github.com/kellyselden)
+- [#8926](https://github.com/ember-cli/ember-cli/pull/8926) Add `application` to invalid names [@kennethlarsen](https://github.com/kennethlarsen)
+
+Thank you to all who took the time to contribute!
+
+## v3.14.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.13.2...v3.14.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.13.2...v3.14.0)
+
+
+- [#8875](https://github.com/ember-cli/ember-cli/pull/8875) Fix ember-cli-htmlbars-inline-precompile deprecation [@HeroicEric](https://github.com/HeroicEric)
+- [#8882](https://github.com/ember-cli/ember-cli/pull/8882) Simplify "Get started" message for `ember new` [@dcyriller](https://github.com/dcyriller)
+- [#8899](https://github.com/ember-cli/ember-cli/pull/8899) Don't reload the config for instrumentation [@pzuraq](https://github.com/pzuraq)
+- [#8900](https://github.com/ember-cli/ember-cli/pull/8900) Include `legacyDecorators` eslint option by default [@pzuraq](https://github.com/pzuraq)
+- [#8901](https://github.com/ember-cli/ember-cli/pull/8901) Merge `config/environment.js`'s `EmberENV` configuration with any pre-existing `EmberENV` [@chancancode](https://github.com/chancancode)
+- [#8910](https://github.com/ember-cli/ember-cli/pull/8910) Update TravisCI config for `ember new` to restrict CI runs to `master` branch and pull requests [@kellyselden](https://github.com/kellyselden)
+- [#8915](https://github.com/ember-cli/ember-cli/pull/8915) Revert changes made to enable "octane" as the default for `ember new` [@rwjblue](https://github.com/rwjblue)
+- [#8916](https://github.com/ember-cli/ember-cli/pull/8916) Update ember-source and ember-data to 3.14.x [@rwjblue](https://github.com/rwjblue)
+- [#8853](https://github.com/ember-cli/ember-cli/pull/8853) Update ember-resolver to 5.3.0. [@rwjblue](https://github.com/rwjblue)
+- [#8812](https://github.com/ember-cli/ember-cli/pull/8812) Clarify installation error message [@jrjohnson](https://github.com/jrjohnson)
+- [#8820](https://github.com/ember-cli/ember-cli/pull/8820) Issue deprecation when enabling MODULE_UNIFICATION flag. [@rwjblue](https://github.com/rwjblue)
+
+## v3.13.2
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.13.1...v3.13.2)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.13.1...v3.13.2)
+
+
+- [#8875](https://github.com/ember-cli/ember-cli/pull/8875) Fix ember-cli-htmlbars-inline-precompile deprecation [@HeroicEric](https://github.com/HeroicEric)
+- [#8882](https://github.com/ember-cli/ember-cli/pull/8882) Simplify "Get started" message [@dcyriller](https://github.com/dcyriller)
+- [#8901](https://github.com/ember-cli/ember-cli/pull/8901) Merge `config/environment.js`'s `EmberENV` configuration with any pre-existing `EmberENV` [@chancancode](https://github.com/chancancode)
+
+Thank you to all who took the time to contribute!
+
+## v3.13.1
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.13.0...v3.13.1)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.13.0...v3.13.1)
+
+
+- [#8857](https://github.com/ember-cli/ember-cli/pull/8857) Tweaks to release scripts. [@rwjblue](https://github.com/rwjblue)
+- [#8862](https://github.com/ember-cli/ember-cli/pull/8862) Adjust message for when a new app is created [@dcyriller](https://github.com/dcyriller)
+
+Thank you to all who took the time to contribute!
+
+## v3.13.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.12.0...v3.13.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.12.0...v3.13.0)
+
+#### Changelog
+
+- [#8797](https://github.com/ember-cli/ember-cli/pull/8797) Update heimdalljs-fs-monitor to 0.2.3. [@rwjblue](https://github.com/rwjblue)
+- [#8798](https://github.com/ember-cli/ember-cli/pull/8798) Update blueprint reference for ember-source to 3.13.0-beta.2. [@rwjblue](https://github.com/rwjblue)
+- [#8814](https://github.com/ember-cli/ember-cli/pull/8814) Drop Node 11 from CI. [@rwjblue](https://github.com/rwjblue)
+- [#8816](https://github.com/ember-cli/ember-cli/pull/8816) Update app and addon blueprints to latest version of packages. [@rwjblue](https://github.com/rwjblue)
+- [#8834](https://github.com/ember-cli/ember-cli/pull/8834) Ensure addon tree is scoped to addon name before compiling templates. [@rwjblue](https://github.com/rwjblue)
+- [fd7268b59ddcddca849762a4923c14655da47188](https://github.com/ember-cli/ember-cli/commit/fd7268b59ddcddca849762a4923c14655da47188) Update watch-detector to 1.0.0. [@rwjblue](https://github.com/rwjblue)
+- [#8850](https://github.com/ember-cli/ember-cli/pull/8850) Update broccoli dependencies/devDependencies to latest. [@rwjblue](https://github.com/rwjblue)
+- [#8851](https://github.com/ember-cli/ember-cli/pull/8851) Update Ember ecosystem packages to latest version. [@rwjblue](https://github.com/rwjblue)
+- [#8853](https://github.com/ember-cli/ember-cli/pull/8853) Update ember-resolver to 5.3.0. [@rwjblue](https://github.com/rwjblue)
+- [#8642](https://github.com/ember-cli/ember-cli/pull/8642) Use system temp for ember test [@ef4](https://github.com/ef4)
+- [#8650](https://github.com/ember-cli/ember-cli/pull/8650) [BUGFIX] reset resolve-package-path caches in PackageInfoCache._clear() [@jamescdavis](https://github.com/jamescdavis)
+- [#8633](https://github.com/ember-cli/ember-cli/pull/8633) Refactor template build pipeline to enable co-located templates. [@rwjblue](https://github.com/rwjblue)
+- [#8616](https://github.com/ember-cli/ember-cli/pull/8616) [ENHANCEMENT] Gather hardware information when creating instrumentation summaries [@benblank](https://github.com/benblank)
+- [#8676](https://github.com/ember-cli/ember-cli/pull/8676) Track the time taken to collect hardware metrics [@benblank](https://github.com/benblank)
+- [#8678](https://github.com/ember-cli/ember-cli/pull/8678) give ember-cli a progress indicator [@stefanpenner](https://github.com/stefanpenner)
+- [#8588](https://github.com/ember-cli/ember-cli/pull/8588) [dx] Detail app / addon creation messages [@dcyriller](https://github.com/dcyriller)
+- [#8687](https://github.com/ember-cli/ember-cli/pull/8687) Add .git directory to npmignore [@rwwagner90](https://github.com/rwwagner90)
+- [#8701](https://github.com/ember-cli/ember-cli/pull/8701) Add ember-cli-htmlbars to default addon dependencies [@haochuan](https://github.com/haochuan)
+- [#8747](https://github.com/ember-cli/ember-cli/pull/8747) Update Windows documentation link [@loganrosen](https://github.com/loganrosen)
+- [#8772](https://github.com/ember-cli/ember-cli/pull/8772) fix typos :) [@aspala](https://github.com/aspala)
+- [#8564](https://github.com/ember-cli/ember-cli/pull/8564) Adds babel-eslint as the default ESlint parser [@pzuraq](https://github.com/pzuraq)
+
+Thank you to all who took the time to contribute!
+
+## v3.12.1
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.12.0...v3.12.1)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.12.0...v3.12.1)
 
 #### Community Contributions
 
+- [#8797](https://github.com/ember-cli/ember-cli/pull/8797) Update heimdalljs-fs-monitor to 0.2.3. [@rwjblue](https://github.com/rwjblue)
+- [#8959](https://github.com/ember-cli/ember-cli/pull/8959) Ensure `node_modules/*` directories without a `package.json` are not considered as part of the addon discovery process [@stefanpenner](https://github.com/stefanpenner)
+
+Thank you to all who took the time to contribute!
+
+## v3.12.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.11.0...v3.12.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.11.0...v3.12.0)
+
+#### Community Contributions
+
+- [#8753](https://github.com/ember-cli/ember-cli/pull/8753) Quote empty strings in printCommand [@chancancode](https://github.com/chancancode)
+- [#8774](https://github.com/ember-cli/ember-cli/pull/8774) Remove --disable-gpu flag when starting headless chrome [@stefanpenner](https://github.com/stefanpenner)
+
+## v3.11.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.10.0...v3.11.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.10.0...v3.11.0)
+
+#### Community Contributions
+
+- [#8659](https://github.com/ember-cli/ember-cli/pull/8659) ecmaVersion 2015 is out of date [@kellyselden](https://github.com/kellyselden)
+- [#8660](https://github.com/ember-cli/ember-cli/pull/8660) start testing ember-lts-3.8 in ember-try [@kellyselden](https://github.com/kellyselden)
+- [#8662](https://github.com/ember-cli/ember-cli/pull/8662) use async/await in ember-try config [@kellyselden](https://github.com/kellyselden)
+- [#8664](https://github.com/ember-cli/ember-cli/pull/8664) fix README ember min version [@kellyselden](https://github.com/kellyselden)
+- [#8674](https://github.com/ember-cli/ember-cli/pull/8674) ensure we use Promise.prototype.finally polyfil for node 8 compat [@stefanpenner](https://github.com/stefanpenner)
+- [#8675](https://github.com/ember-cli/ember-cli/pull/8675) [beta] Gather hardware information when creating instrumentation summaries. [@stefanpenner](https://github.com/stefanpenner)
+- [#8679](https://github.com/ember-cli/ember-cli/pull/8679) Adding change logging for backwards compatibility [@thoov](https://github.com/thoov)
+- [#8680](https://github.com/ember-cli/ember-cli/pull/8680) [Fixes #8677] ensure watcher parity [@stefanpenner](https://github.com/stefanpenner)
 - [#8595](https://github.com/ember-cli/ember-cli/pull/8595) `Project#config` should use `EMBER_ENV` as default environment when none is passed in [@nlfurniss](https://github.com/nlfurniss)
-- [#8604](https://github.com/ember-cli/ember-cli/pull/8604) CONTRIBUTING: Clarify the way to start working on the repo. [@MonsieurDart](https://github.com/MonsieurDart)
+- [#8604](https://github.com/stefanpenner/ember-cli/pull/8604) CONTRIBUTING: Clarify the way to start working on the repo. [@MonsieurDart](https://github.com/MonsieurDart)
 - [#8621](https://github.com/ember-cli/ember-cli/pull/8621) project.findAddonByName was intended to be public [@stefanpenner](https://github.com/stefanpenner)
+- [#8697](https://github.com/ember-cli/ember-cli/pull/8697) Update to Broccoli 3.1. [@thoov](https://github.com/thoov)
+- [#8692](https://github.com/ember-cli/ember-cli/pull/8692) Allow `prettier` usage on `app/index.html` [@lougreenwood](https://github.com/lougreenwood)
 
 Thank you to all who took the time to contribute!
 

@@ -3,6 +3,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const walkSync = require('walk-sync');
+const chalk = require('chalk');
 const stringUtil = require('ember-cli-string-utils');
 const uniq = require('ember-cli-lodash-subset').uniq;
 const SilentError = require('silent-error');
@@ -50,17 +51,21 @@ module.exports = {
     contents.dependencies['ember-cli-babel'] = contents.devDependencies['ember-cli-babel'];
     delete contents.devDependencies['ember-cli-babel'];
 
-    // 99% of addons don't need ember-data, make it opt-in instead
+    // Move ember-cli-htmlbars into the dependencies of the addon blueprint by default
+    // to prevent error:
+    // `Addon templates were detected but there are no template compilers registered for (addon-name)`
+    contents.dependencies['ember-cli-htmlbars'] = contents.devDependencies['ember-cli-htmlbars'];
+    delete contents.devDependencies['ember-cli-htmlbars'];
+
+    // 95% of addons don't need ember-data or ember-fetch, make them opt-in instead
     delete contents.devDependencies['ember-data'];
+    delete contents.devDependencies['ember-fetch'];
 
     // 100% of addons don't need ember-cli-app-version, make it opt-in instead
     delete contents.devDependencies['ember-cli-app-version'];
 
     // addons should test _without_ jquery by default
     delete contents.devDependencies['@ember/jquery'];
-
-    // ember-ajax depends on jquery, make it opt-in
-    delete contents.devDependencies['ember-ajax'];
 
     if (contents.keywords.indexOf('ember-addon') === -1) {
       contents.keywords.push('ember-addon');
@@ -70,10 +75,10 @@ module.exports = {
     contents.devDependencies['ember-disable-prototype-extensions'] = '^1.1.3';
 
     // add ember-try
-    contents.devDependencies['ember-try'] = '^1.0.0';
+    contents.devDependencies['ember-try'] = '^1.4.0';
 
     // add ember-source-channel-url
-    contents.devDependencies['ember-source-channel-url'] = '^1.1.0';
+    contents.devDependencies['ember-source-channel-url'] = '^2.0.1';
 
     // add `ember-try` as `test:all` script in addons
     contents.scripts['test:all'] = 'ember try:each';
@@ -101,6 +106,15 @@ module.exports = {
     }
 
     return new FileInfo(options);
+  },
+
+  beforeInstall() {
+    const version = require('../../package.json').version;
+    const prependEmoji = require('../../lib/utilities/prepend-emoji');
+
+    this.ui.writeLine(chalk.blue(`Ember CLI v${version}`));
+    this.ui.writeLine('');
+    this.ui.writeLine(prependEmoji('✨', `Creating a new Ember addon in ${chalk.yellow(process.cwd())}:`));
   },
 
   afterInstall() {

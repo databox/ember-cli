@@ -108,7 +108,7 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(errorArray.length).to.equal(1);
     });
 
-    // TODO: the input to this test is poluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
+    // TODO: the input to this test is polluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
     it.skip('shows projectPackageInfo error is "3 dependencies missing"', function() {
       let errorArray = projectPackageInfo.errors.getErrors();
       let error = errorArray[0];
@@ -124,7 +124,7 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(dependencyPackages['something-else']).to.exist;
     });
 
-    // TODO: the input to this test is poluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
+    // TODO: the input to this test is polluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
     it.skip('shows projectPackageInfo has 8 devDependencyPackages', function() {
       let devDependencyPackages = projectPackageInfo.devDependencyPackages;
       expect(devDependencyPackages).to.exist;
@@ -165,7 +165,7 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
       expect(internalAddons.length).to.equal(7);
     });
 
-    // TODO: the input to this test is poluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
+    // TODO: the input to this test is polluted by other tests: https://github.com/ember-cli/ember-cli/issues/7981
     it.skip('shows projectPackageInfo has 9 node-module entries', function() {
       let nodeModules = projectPackageInfo.nodeModules;
       expect(nodeModules).to.exist;
@@ -175,13 +175,65 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
   });
 
   describe('packageInfo', function() {
+    describe('project with invalid paths', function() {
+      let project, fixturifyProject;
+      beforeEach(function() {
+        // create a new ember-app
+        fixturifyProject = new FixturifyProject('simple-ember-app', '0.0.0', project => {
+          project.addAddon('ember-resolver', '^5.0.1');
+          project.addAddon('ember-random-addon', 'latest');
+          project.addAddon('loader.js', 'latest');
+          project.addAddon('something-else', 'latest');
+          project.addInRepoAddon('ember-super-button', 'latest', function(project) {
+            project.pkg['ember-addon'].paths = ['lib/herp-not-here'];
+          });
+          project.addDevDependency('ember-cli', 'latest');
+          project.addDevDependency('non-ember-thingy', 'latest');
+          project.pkg['ember-addon'].paths.push('lib/no-such-path');
+        });
+
+        fixturifyProject.writeSync();
+
+        project = fixturifyProject.buildProjectModel(Project);
+      });
+
+      afterEach(function() {
+        fixturifyProject.dispose();
+        delete process.env.EMBER_CLI_ERROR_ON_INVALID_ADDON;
+      });
+
+      it('shows a warning with invalid ember-addon#path', function() {
+        project.discoverAddons();
+        expect(project.cli.ui.output).to.include(
+          `specifies an invalid, malformed or missing addon at relative path 'lib${path.sep}no-such-path'`
+        );
+      });
+
+      it('throws an error with flag on', function() {
+        process.env.EMBER_CLI_ERROR_ON_INVALID_ADDON = 'true';
+        expect(() => project.discoverAddons()).to.throw(
+          /specifies an invalid, malformed or missing addon at relative path 'lib[\\/]no-such-path'/
+        );
+      });
+    });
     describe('valid project', function() {
       let project, fixturifyProject;
       before(function() {
         // create a new ember-app
         fixturifyProject = new FixturifyProject('simple-ember-app', '0.0.0', project => {
           project.addAddon('ember-resolver', '^5.0.1');
-          project.addAddon('ember-random-addon', 'latest');
+          project.addAddon('ember-random-addon', 'latest', addon => {
+            addon.addAddon('other-nested-addon', 'latest', addon => {
+              addon.addAddon('ember-resolver', '*');
+              addon.toJSON = function() {
+                const json = Object.getPrototypeOf(this).toJSON.call(this);
+                // here we introduce an empty folder in our node_modules.
+                json[this.name].node_modules['ember-resolver'] = {};
+                return json;
+              };
+            });
+          });
+
           project.addAddon('loader.js', 'latest');
           project.addAddon('something-else', 'latest');
 
@@ -200,6 +252,14 @@ describe('models/package-info-cache/package-info-cache-test.js', function() {
 
       after(function() {
         fixturifyProject.dispose();
+      });
+
+      it('was able to find ember-resolver even if an empty directory was left', function() {
+        const emberResolver = project.findAddonByName('ember-resolver');
+        const nestedEmberResolver = project.findAddonByName('ember-random-addon').addons[0].addons[0];
+        expect(emberResolver.name).to.eql('ember-resolver');
+        expect(nestedEmberResolver.name).to.eql('ember-resolver');
+        expect(emberResolver.root).to.eql(nestedEmberResolver.root);
       });
 
       it('has dependencies who have their mayHaveAddons correctly set', function() {
