@@ -11,8 +11,8 @@ on:
       - 'release-*'
       - 'lts-*'
   pull_request:
-  schedule:
-    - cron:  '0 3 * * *' # daily, at 3am
+  #schedule:
+  #  - cron:  '0 3 * * *' # daily, at 3am
 
 jobs:
   basic-tests:
