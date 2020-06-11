@@ -4,10 +4,36 @@ const expect = require('chai').expect;
 const TestTask = require('../../../lib/tasks/test');
 const MockProject = require('../../helpers/mock-project');
 
-describe('test task test', function() {
+describe('test task test', function () {
   let subject;
 
-  it('transforms options for testem configuration', function() {
+  it('call testem middleware with options', async function () {
+    let testemMiddlewareOptions;
+    let project = new MockProject();
+
+    project.initializeAddons = function () {};
+    project.addons = [
+      {
+        testemMiddleware(_, options) {
+          testemMiddlewareOptions = options;
+        },
+      },
+    ];
+
+    let options = {
+      reporter: 'xunit',
+      configFile: 'tests/fixtures/tasks/testem-config/testem-dummy.json',
+      path: 'dist',
+      ssl: false,
+    };
+
+    subject = new TestTask({ project });
+    await subject.run(options);
+    expect(testemMiddlewareOptions).to.deep.equal(options);
+    expect(testemMiddlewareOptions.path).to.equal('dist');
+  });
+
+  it('transforms options for testem configuration', function () {
     subject = new TestTask({
       project: new MockProject(),
       addonMiddlewares() {
@@ -55,7 +81,7 @@ describe('test task test', function() {
     });
   });
 
-  it('supports conditionally passing SSL configuration forward', function() {
+  it('supports conditionally passing SSL configuration forward', function () {
     subject = new TestTask({
       project: new MockProject(),
 

@@ -5,26 +5,27 @@ const EOL = require('os').EOL;
 const commandOptions = require('../../factories/command-options');
 const processHelpString = require('../../helpers/process-help-string');
 const MockProject = require('../../helpers/mock-project');
-const Promise = require('rsvp').Promise;
 const Task = require('../../../lib/models/task');
 const Blueprint = require('../../../lib/models/blueprint');
 const GenerateCommand = require('../../../lib/commands/generate');
 const td = require('testdouble');
-const fs = require('fs-extra');
-const path = require('path');
-const ci = require('ci-info');
+const ROOT = process.cwd();
+const { createTempDir } = require('broccoli-test-helper');
 
-describe('generate command', function() {
-  let options, command;
+describe('generate command', function () {
+  let input, options, command;
 
-  beforeEach(function() {
-    let project = new MockProject();
+  beforeEach(async function () {
+    input = await createTempDir();
+    process.chdir(input.path());
 
-    project.isEmberCLIProject = function() {
+    let project = new MockProject({ root: input.path() });
+
+    project.isEmberCLIProject = function () {
       return true;
     };
 
-    project.blueprintLookupPaths = function() {
+    project.blueprintLookupPaths = function () {
       return [];
     };
 
@@ -44,50 +45,44 @@ describe('generate command', function() {
     command = new GenerateCommand(options);
   });
 
-  afterEach(function() {
+  afterEach(async function () {
     td.reset();
+
+    process.chdir(ROOT);
+    await input.dispose();
   });
 
-  describe('without yarn.lock file', function() {
-    let originalYarnLockPath, dummyYarnLockPath;
-
-    beforeEach(function() {
-      originalYarnLockPath = path.join(command.project.root, 'yarn.lock');
-      dummyYarnLockPath = path.join(command.project.root, 'foo.bar');
-      fs.renameSync(originalYarnLockPath, dummyYarnLockPath);
-    });
-
-    afterEach(function() {
-      fs.renameSync(dummyYarnLockPath, originalYarnLockPath);
-    });
-
-    (ci.APPVEYOR ? it.skip : it)('runs GenerateFromBlueprint but with null nodeModulesPath with npm', function() {
-      command.project.hasDependencies = function() {
-        return false;
-      };
-
-      return expect(command.validateAndRun(['controller', 'foo'])).to.be.rejected.then(reason => {
-        expect(reason.message).to.eql(
-          'Required packages are missing, run `npm install` from this directory to install them.'
-        );
-      });
-    });
-  });
-
-  (ci.APPVEYOR ? it.skip : it)('runs GenerateFromBlueprint but with null nodeModulesPath with yarn', function() {
-    command.project.hasDependencies = function() {
+  it('runs GenerateFromBlueprint but with null nodeModulesPath with npm', function () {
+    command.project.hasDependencies = function () {
       return false;
     };
 
-    return expect(command.validateAndRun(['controller', 'foo'])).to.be.rejected.then(reason => {
+    return expect(command.validateAndRun(['controller', 'foo'])).to.be.rejected.then((reason) => {
+      expect(reason.message).to.eql(
+        'Required packages are missing, run `npm install` from this directory to install them.'
+      );
+    });
+  });
+
+  it('runs GenerateFromBlueprint but with null nodeModulesPath with yarn', function () {
+    // force usage of `yarn` by adding yarn.lock file
+    input.write({
+      'yarn.lock': '',
+    });
+
+    command.project.hasDependencies = function () {
+      return false;
+    };
+
+    return expect(command.validateAndRun(['controller', 'foo'])).to.be.rejected.then((reason) => {
       expect(reason.message).to.eql(
         'Required packages are missing, run `yarn install` from this directory to install them.'
       );
     });
   });
 
-  it('runs GenerateFromBlueprint with expected options', function() {
-    return command.validateAndRun(['controller', 'foo']).then(function(options) {
+  it('runs GenerateFromBlueprint with expected options', function () {
+    return command.validateAndRun(['controller', 'foo']).then(function (options) {
       expect(options.pod).to.be.false;
       expect(options.dryRun).to.be.false;
       expect(options.verbose).to.be.false;
@@ -95,14 +90,14 @@ describe('generate command', function() {
     });
   });
 
-  it('does not throw errors when beforeRun is invoked without the blueprint name', function() {
+  it('does not throw errors when beforeRun is invoked without the blueprint name', function () {
     expect(() => {
       command.beforeRun([]);
     }).to.not.throw();
   });
 
-  it('complains if no blueprint name is given', function() {
-    return expect(command.validateAndRun([])).to.be.rejected.then(error => {
+  it('complains if no blueprint name is given', function () {
+    return expect(command.validateAndRun([])).to.be.rejected.then((error) => {
       expect(error.message).to.equal(
         'The `ember generate` command requires a ' +
           'blueprint name to be specified. ' +
@@ -111,12 +106,12 @@ describe('generate command', function() {
     });
   });
 
-  describe('help', function() {
-    beforeEach(function() {
+  describe('help', function () {
+    beforeEach(function () {
       td.replace(Blueprint, 'list', td.function());
     });
 
-    it('lists available blueprints', function() {
+    it('lists available blueprints', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -153,7 +148,7 @@ ${EOL}`);
       expect(output).to.equal(testString);
     });
 
-    it('lists available blueprints json', function() {
+    it('lists available blueprints json', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -200,7 +195,7 @@ ${EOL}`);
       ]);
     });
 
-    it('works with single blueprint', function() {
+    it('works with single blueprint', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -232,7 +227,7 @@ ${EOL}`);
       expect(output).to.equal(testString);
     });
 
-    it('works with single blueprint json', function() {
+    it('works with single blueprint json', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -271,7 +266,7 @@ ${EOL}`);
       ]);
     });
 
-    it('handles missing blueprint', function() {
+    it('handles missing blueprint', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -296,7 +291,7 @@ ${EOL}`);
       expect(output).to.equal(testString);
     });
 
-    it('handles missing blueprint json', function() {
+    it('handles missing blueprint json', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -322,7 +317,7 @@ ${EOL}`);
       ]);
     });
 
-    it('ignores overridden blueprints when verbose false', function() {
+    it('ignores overridden blueprints when verbose false', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',
@@ -350,7 +345,7 @@ ${EOL}`);
       expect(output).to.equal(testString);
     });
 
-    it('shows overridden blueprints when verbose true', function() {
+    it('shows overridden blueprints when verbose true', function () {
       td.when(Blueprint.list(), { ignoreExtraArgs: true }).thenReturn([
         {
           source: 'my-app',

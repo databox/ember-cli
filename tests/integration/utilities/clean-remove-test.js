@@ -4,19 +4,15 @@ const expect = require('../../chai').expect;
 const cleanRemove = require('../../../lib/utilities/clean-remove');
 const temp = require('temp');
 const path = require('path');
-const RSVP = require('rsvp');
 const fs = require('fs-extra');
 
-let outputFile = RSVP.denodeify(fs.outputFile);
-let stat = RSVP.denodeify(fs.stat);
-
-describe('clean-remove', function() {
+describe('clean-remove', function () {
   let tempDir;
   let originalCwd = process.cwd();
   let fileInfo;
   let nestedPath = 'nested1/nested2';
 
-  beforeEach(function() {
+  beforeEach(function () {
     tempDir = temp.mkdirSync('clean-remove');
     process.chdir(tempDir);
 
@@ -25,55 +21,37 @@ describe('clean-remove', function() {
     };
   });
 
-  afterEach(function() {
+  afterEach(function () {
     process.chdir(originalCwd);
     fs.removeSync(tempDir);
   });
 
-  it('removes empty folders', function() {
+  it('removes empty folders', async function () {
     let displayPath = path.join(nestedPath, 'file.txt');
     fileInfo.outputPath = path.join(tempDir, displayPath);
     fileInfo.displayPath = displayPath;
 
-    return outputFile(displayPath, '')
-      .then(function() {
-        return stat(displayPath).then(function(stats) {
-          expect(stats).to.be.ok;
-        });
-      })
-      .then(function() {
-        return cleanRemove(fileInfo);
-      })
-      .then(function() {
-        return expect(stat('nested1')).to.be.rejected;
-      });
+    await fs.outputFile(displayPath, '');
+    let stats = await fs.stat(displayPath);
+    expect(stats).to.be.ok;
+    await cleanRemove(fileInfo);
+    return expect(fs.stat('nested1')).to.be.rejected;
   });
 
-  it('preserves filled folders', function() {
+  it('preserves filled folders', async function () {
     let removedDisplayPath = path.join(nestedPath, 'file.txt');
     let preservedDisplayPath = path.join(nestedPath, 'file2.txt');
     fileInfo.outputPath = path.join(tempDir, removedDisplayPath);
     fileInfo.displayPath = removedDisplayPath;
 
-    return outputFile(removedDisplayPath, '')
-      .then(function() {
-        return outputFile(preservedDisplayPath, '');
-      })
-      .then(function() {
-        return stat(preservedDisplayPath).then(function(stats) {
-          expect(stats).to.be.ok;
-        });
-      })
-      .then(function() {
-        return cleanRemove(fileInfo);
-      })
-      .then(function() {
-        return expect(stat(removedDisplayPath)).to.be.rejected;
-      })
-      .then(function() {
-        return stat(preservedDisplayPath).then(function(stats) {
-          expect(stats).to.be.ok;
-        });
-      });
+    await fs.outputFile(removedDisplayPath, '');
+    await fs.outputFile(preservedDisplayPath, '');
+
+    expect(await fs.stat(preservedDisplayPath)).to.be.ok;
+
+    await cleanRemove(fileInfo);
+    await expect(fs.stat(removedDisplayPath)).to.be.rejected;
+
+    expect(await fs.stat(preservedDisplayPath)).to.be.ok;
   });
 });

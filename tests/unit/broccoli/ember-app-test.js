@@ -20,11 +20,11 @@ const Addon = require('../../../lib/models/addon');
 
 function mockTemplateRegistry(app) {
   let oldLoad = app.registry.load;
-  app.registry.load = function(type) {
+  app.registry.load = function (type) {
     if (type === 'template') {
       return [
         {
-          toTree: tree => tree,
+          toTree: (tree) => tree,
         },
       ];
     }
@@ -32,7 +32,7 @@ function mockTemplateRegistry(app) {
   };
 }
 
-describe('EmberApp', function() {
+describe('EmberApp', function () {
   let project, projectPath, app, addon;
 
   function setupProject(rootPath) {
@@ -40,26 +40,26 @@ describe('EmberApp', function() {
     let cli = new MockCLI();
 
     project = new Project(rootPath, packageContents, cli.ui, cli);
-    project.require = function() {
-      return function() {};
+    project.require = function () {
+      return function () {};
     };
-    project.initializeAddons = function() {
+    project.initializeAddons = function () {
       this.addons = [];
     };
 
     return project;
   }
 
-  beforeEach(function() {
+  beforeEach(function () {
     projectPath = path.resolve(__dirname, '../../fixtures/addon/simple');
     project = setupProject(projectPath);
   });
 
   if (isExperimentEnabled('PACKAGER')) {
-    describe('packager hook', function() {
+    describe('packager hook', function () {
       let js, input, output;
 
-      before(async function() {
+      before(async function () {
         js = await createTempDir();
         js.write({
           fake: {
@@ -68,22 +68,22 @@ describe('EmberApp', function() {
         });
       });
 
-      beforeEach(async function() {
+      beforeEach(async function () {
         input = await createTempDir();
       });
 
-      afterEach(async function() {
+      afterEach(async function () {
         await input.dispose();
         if (output) {
           await output.dispose();
         }
       });
 
-      after(async function() {
+      after(async function () {
         await js.dispose();
       });
 
-      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not a function', function() {
+      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not a function', function () {
         let app = new EmberApp({
           project,
           package: false,
@@ -92,7 +92,7 @@ describe('EmberApp', function() {
         expect(app._isPackageHookSupplied).to.equal(false);
       });
 
-      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not supplied', function() {
+      it('sets `_isPackageHookSupplied` to `false` if `package` hook is not supplied', function () {
         let app = new EmberApp({
           project,
         });
@@ -100,7 +100,7 @@ describe('EmberApp', function() {
         expect(app._isPackageHookSupplied).to.equal(false);
       });
 
-      it('sets `_isPackageHookSupplied` to `true` if `package` hook is supplied', function() {
+      it('sets `_isPackageHookSupplied` to `true` if `package` hook is supplied', function () {
         let app = new EmberApp({
           project,
           package: () => input.path(),
@@ -109,7 +109,7 @@ describe('EmberApp', function() {
         expect(app._isPackageHookSupplied).to.equal(true);
       });
 
-      it('overrides the output of the build', async function() {
+      it('overrides the output of the build', async function () {
         input.write({
           fake: {
             dist: {
@@ -137,7 +137,7 @@ describe('EmberApp', function() {
         });
       });
 
-      it('receives a full tree as an argument', async function() {
+      it('receives a full tree as an argument', async function () {
         let appStyles = await createTempDir();
         appStyles.write({
           'app.css': '// css styles',
@@ -152,7 +152,7 @@ describe('EmberApp', function() {
 
         let app = new EmberApp({
           project,
-          package: tree => mergeTrees([tree, input.path()]),
+          package: (tree) => mergeTrees([tree, input.path()]),
           trees: {
             styles: appStyles.path(),
           },
@@ -193,7 +193,7 @@ describe('EmberApp', function() {
         });
       });
 
-      it('prints a warning if `package` is not a function and falls back to default packaging', async function() {
+      it('prints a warning if `package` is not a function and falls back to default packaging', async function () {
         let app = new EmberApp({
           project,
           package: {},
@@ -206,7 +206,6 @@ describe('EmberApp', function() {
         app.getStyles = td.function();
         app.getTests = td.function();
         app.getExternalTree = td.function();
-        app.getSrc = td.function();
         app._legacyAddonCompile = td.function();
         app._defaultPackager = {
           packagePublic: td.function(),
@@ -223,16 +222,15 @@ describe('EmberApp', function() {
         td.verify(app.getStyles());
         td.verify(app.getTests());
         td.verify(app.getExternalTree());
-        td.verify(app.getSrc());
         td.verify(
           app.project.ui.writeWarnLine('`package` hook must be a function, falling back to default packaging.')
         );
       });
 
-      it('receives transpiled ES current app tree', async function() {
+      it('receives transpiled ES current app tree', async function () {
         let app = new EmberApp({
           project,
-          package: tree => tree,
+          package: (tree) => tree,
         });
         mockTemplateRegistry(app);
 
@@ -264,8 +262,8 @@ describe('EmberApp', function() {
     });
   }
 
-  describe('getStyles()', function() {
-    it('can handle empty styles folders', async function() {
+  describe('getStyles()', function () {
+    it('can handle empty styles folders', async function () {
       let appStyles = await createTempDir();
       appStyles.write({
         'app.css': '// css styles',
@@ -294,12 +292,8 @@ describe('EmberApp', function() {
       await output.dispose();
     });
 
-    it('can handle empty addon styles folders', async function() {
+    it('can handle empty addon styles folders', async function () {
       let appOptions = { project };
-
-      if (isExperimentEnabled('MODULE_UNIFICATION')) {
-        appOptions.trees = { src: {} };
-      }
 
       let app = new EmberApp(appOptions);
 
@@ -313,24 +307,13 @@ describe('EmberApp', function() {
       let output = await buildOutput(app.getStyles());
       let outputFiles = output.read();
 
-      let expectedOutput;
-      if (isExperimentEnabled('MODULE_UNIFICATION')) {
-        expectedOutput = {
-          src: {
-            ui: {
-              styles: {},
-            },
-          },
-        };
-      } else {
-        expectedOutput = {};
-      }
+      let expectedOutput = {};
       expect(outputFiles).to.deep.equal(expectedOutput);
 
       await output.dispose();
     });
 
-    it('add `app/styles` folder from add-ons', async function() {
+    it('add `app/styles` folder from add-ons', async function () {
       let addonFooStyles = await createTempDir();
 
       addonFooStyles.write({
@@ -342,10 +325,6 @@ describe('EmberApp', function() {
       });
 
       let appOptions = { project };
-
-      if (isExperimentEnabled('MODULE_UNIFICATION')) {
-        appOptions.trees = { src: {} };
-      }
 
       let app = new EmberApp(appOptions);
 
@@ -362,33 +341,20 @@ describe('EmberApp', function() {
       let output = await buildOutput(app.getStyles());
       let outputFiles = output.read();
 
-      let expectedOutput;
-      if (isExperimentEnabled('MODULE_UNIFICATION')) {
-        expectedOutput = {
-          src: {
-            ui: {
-              styles: {
-                'foo.css': 'foo',
-              },
-            },
+      let expectedOutput = {
+        app: {
+          styles: {
+            'foo.css': 'foo',
           },
-        };
-      } else {
-        expectedOutput = {
-          app: {
-            styles: {
-              'foo.css': 'foo',
-            },
-          },
-        };
-      }
+        },
+      };
       expect(outputFiles).to.deep.equal(expectedOutput);
 
       await addonFooStyles.dispose();
       await output.dispose();
     });
 
-    it('returns add-ons styles files', async function() {
+    it('returns add-ons styles files', async function () {
       let addonFooStyles = await createTempDir();
       let addonBarStyles = await createTempDir();
 
@@ -410,7 +376,7 @@ describe('EmberApp', function() {
       let app = new EmberApp({
         project,
       });
-      app.addonTreesFor = function() {
+      app.addonTreesFor = function () {
         return [addonFooStyles.path(), addonBarStyles.path()];
       };
 
@@ -433,7 +399,7 @@ describe('EmberApp', function() {
       await output.dispose();
     });
 
-    it('does not fail if add-ons do not export styles', async function() {
+    it('does not fail if add-ons do not export styles', async function () {
       let app = new EmberApp({
         project,
       });
@@ -448,8 +414,8 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('getPublic()', function() {
-    it('returns public files for app and add-ons', async function() {
+  describe('getPublic()', function () {
+    it('returns public files for app and add-ons', async function () {
       let input = await createTempDir();
       let addonFooPublic = await createTempDir();
       let addonBarPublic = await createTempDir();
@@ -470,7 +436,7 @@ describe('EmberApp', function() {
       });
 
       app.trees.public = input.path();
-      app.addonTreesFor = function() {
+      app.addonTreesFor = function () {
         return [addonFooPublic.path(), addonBarPublic.path()];
       };
 
@@ -492,7 +458,7 @@ describe('EmberApp', function() {
       await output.dispose();
     });
 
-    it('does not fail if app or add-ons have the same `public` folder structure', async function() {
+    it('does not fail if app or add-ons have the same `public` folder structure', async function () {
       let input = await createTempDir();
       let addonFooPublic = await createTempDir();
       let addonBarPublic = await createTempDir();
@@ -514,7 +480,7 @@ describe('EmberApp', function() {
       });
 
       app.trees.public = input.path();
-      app.addonTreesFor = function() {
+      app.addonTreesFor = function () {
         return [addonFooPublic.path(), addonBarPublic.path()];
       };
 
@@ -537,8 +503,8 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('getAddonTemplates()', function() {
-    it('returns add-ons template files', async function() {
+  describe('getAddonTemplates()', function () {
+    it('returns add-ons template files', async function () {
       let input = await createTempDir();
       let addonFooTemplates = await createTempDir();
       let addonBarTemplates = await createTempDir();
@@ -554,7 +520,7 @@ describe('EmberApp', function() {
         project,
       });
       app.trees.templates = input.path();
-      app.addonTreesFor = function() {
+      app.addonTreesFor = function () {
         return [addonFooTemplates.path(), addonBarTemplates.path()];
       };
 
@@ -573,8 +539,8 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('getTests()', function() {
-    it('returns all test files `hinting` is enabled', async function() {
+  describe('getTests()', function () {
+    it('returns all test files `hinting` is enabled', async function () {
       let input = await createTempDir();
       let addonLint = await createTempDir();
       let addonFooTestSupport = await createTempDir();
@@ -608,7 +574,7 @@ describe('EmberApp', function() {
 
         return tree;
       };
-      app.addonTreesFor = function(type) {
+      app.addonTreesFor = function (type) {
         if (type === 'test-support') {
           return [addonFooTestSupport.path(), addonBarTestSupport.path()];
         }
@@ -640,7 +606,7 @@ describe('EmberApp', function() {
       await output.dispose();
     });
 
-    it('returns test files w/o lint tests if `hinting` is disabled', async function() {
+    it('returns test files w/o lint tests if `hinting` is disabled', async function () {
       let input = await createTempDir();
       let addonFooTestSupport = await createTempDir();
       let addonBarTestSupport = await createTempDir();
@@ -663,7 +629,7 @@ describe('EmberApp', function() {
         hinting: false,
       });
       app.trees.tests = input.path();
-      app.addonTreesFor = function(type) {
+      app.addonTreesFor = function (type) {
         if (type === 'test-support') {
           return [addonFooTestSupport.path(), addonBarTestSupport.path()];
         }
@@ -691,9 +657,9 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('constructor', function() {
-    it('should override project.configPath if configPath option is specified', function() {
-      project.configPath = function() {
+  describe('constructor', function () {
+    it('should override project.configPath if configPath option is specified', function () {
+      project.configPath = function () {
         return 'original value';
       };
 
@@ -707,7 +673,22 @@ describe('EmberApp', function() {
       expect(project.configPath().slice(-expected.length)).to.equal(expected);
     });
 
-    it('should set bowerDirectory for app', function() {
+    it('should update project.config() if configPath option is specified', function () {
+      project.require = function (path) {
+        return () => ({ path });
+      };
+
+      expect(project.config('development')).to.deep.equal({});
+
+      new EmberApp({
+        project,
+        configPath: path.join('..', '..', 'app-import', 'config', 'environment'),
+      });
+
+      expect(project.configPath()).to.contain(path.join('app-import', 'config', 'environment'));
+    });
+
+    it('should set bowerDirectory for app', function () {
       let app = new EmberApp({
         project,
       });
@@ -716,7 +697,7 @@ describe('EmberApp', function() {
       expect(app.bowerDirectory).to.equal('bower_components');
     });
 
-    it('should merge options with defaults to depth', function() {
+    it('should merge options with defaults to depth', function () {
       let app = new EmberApp(
         {
           project,
@@ -753,7 +734,7 @@ describe('EmberApp', function() {
       });
     });
 
-    it('should do the right thing when merging default object options', function() {
+    it('should do the right thing when merging default object options', function () {
       let app = new EmberApp(
         {
           project,
@@ -784,7 +765,7 @@ describe('EmberApp', function() {
       });
     });
 
-    it('should watch vendor if it exists', function() {
+    it('should watch vendor if it exists', function () {
       let app = new EmberApp({
         project,
       });
@@ -792,7 +773,7 @@ describe('EmberApp', function() {
       expect(app.options.trees.vendor.__broccoliGetInfo__()).to.have.property('watched', true);
     });
 
-    describe('Addons included hook', function() {
+    describe('Addons included hook', function () {
       let includedWasCalled;
       let setupPreprocessorRegistryWasCalled;
       let addonsAppIncluded, addonsApp;
@@ -811,15 +792,15 @@ describe('EmberApp', function() {
         },
       };
 
-      beforeEach(function() {
+      beforeEach(function () {
         setupPreprocessorRegistryWasCalled = includedWasCalled = 0;
         addonsApp = null;
         addonsAppIncluded = null;
-        project.initializeAddons = function() {};
+        project.initializeAddons = function () {};
         project.addons = [addon];
       });
 
-      it('should set the app on the addons', function() {
+      it('should set the app on the addons', function () {
         expect(includedWasCalled).to.eql(0);
         let app = new EmberApp({
           project,
@@ -834,8 +815,8 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('loader.js missing', function() {
-      it('does not error when loader.js is present in registry.availablePlugins', function() {
+    describe('loader.js missing', function () {
+      it('does not error when loader.js is present in registry.availablePlugins', function () {
         expect(() => {
           new EmberApp({
             project,
@@ -843,7 +824,7 @@ describe('EmberApp', function() {
         }).to.not.throw(/loader.js addon is missing/);
       });
 
-      it('throws an error when loader.js is not present in registry.availablePlugins', function() {
+      it('throws an error when loader.js is not present in registry.availablePlugins', function () {
         expect(() => {
           new EmberApp({
             project,
@@ -855,7 +836,7 @@ describe('EmberApp', function() {
         }).to.throw(/loader.js addon is missing/);
       });
 
-      it('does not throw an error if _ignoreMissingLoader is set', function() {
+      it('does not throw an error if _ignoreMissingLoader is set', function () {
         expect(() => {
           new EmberApp({
             project,
@@ -869,14 +850,14 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('ember-resolver npm vs Bower', function() {
-      it('does not load ember-resolver.js as bower dep when ember-resolver is present in registry.availablePlugins', function() {
+    describe('ember-resolver npm vs Bower', function () {
+      it('does not load ember-resolver.js as bower dep when ember-resolver is present in registry.availablePlugins', function () {
         let app = new EmberApp({ project });
         expect(app.vendorFiles['ember-resolver']).to.equal(undefined);
       });
 
-      it('keeps ember-resolver.js in vendorFiles when npm ember-resolver is not installed, but is present in bower.json', function() {
-        project.bowerDependencies = function() {
+      it('keeps ember-resolver.js in vendorFiles when npm ember-resolver is not installed, but is present in bower.json', function () {
+        project.bowerDependencies = function () {
           return { ember: {}, 'ember-resolver': {} };
         };
         let app = new EmberApp({
@@ -891,8 +872,8 @@ describe('EmberApp', function() {
         );
       });
 
-      it('removes ember-resolver.js from vendorFiles when not in bower.json and npm ember-resolver not installed', function() {
-        project.bowerDependencies = function() {
+      it('removes ember-resolver.js from vendorFiles when not in bower.json and npm ember-resolver not installed', function () {
+        project.bowerDependencies = function () {
           return { ember: {} };
         };
         let app = new EmberApp({
@@ -907,8 +888,8 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('options.babel.sourceMaps', function() {
-      it('disables babel sourcemaps by default', function() {
+    describe('options.babel.sourceMaps', function () {
+      it('disables babel sourcemaps by default', function () {
         let app = new EmberApp({
           project,
         });
@@ -916,7 +897,7 @@ describe('EmberApp', function() {
         expect(app.options.babel.sourceMaps).to.be.false;
       });
 
-      it('can enable babel sourcemaps with the option', function() {
+      it('can enable babel sourcemaps with the option', function () {
         let app = new EmberApp({
           project,
           babel: {
@@ -928,8 +909,8 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('options.fingerprint.exclude', function() {
-      it('excludeds testem in fingerprint exclude', function() {
+    describe('options.fingerprint.exclude', function () {
+      it('excludeds testem in fingerprint exclude', function () {
         let app = new EmberApp({
           project,
           fingerprint: {
@@ -942,9 +923,9 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('addons', function() {
-    describe('included hook', function() {
-      it('included hook is called properly on instantiation', function() {
+  describe('addons', function () {
+    describe('included hook', function () {
+      it('included hook is called properly on instantiation', function () {
         let called = false;
         let passedApp;
 
@@ -956,7 +937,7 @@ describe('EmberApp', function() {
           treeFor() {},
         };
 
-        project.initializeAddons = function() {
+        project.initializeAddons = function () {
           this.addons = [addon];
         };
 
@@ -968,10 +949,10 @@ describe('EmberApp', function() {
         expect(passedApp).to.equal(app);
       });
 
-      it('does not throw an error if the addon does not implement `included`', function() {
+      it('does not throw an error if the addon does not implement `included`', function () {
         delete addon.included;
 
-        project.initializeAddons = function() {
+        project.initializeAddons = function () {
           this.addons = [addon];
         };
 
@@ -983,14 +964,14 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('addonTreesFor', function() {
-      beforeEach(function() {
+    describe('addonTreesFor', function () {
+      beforeEach(function () {
         addon = {
           included() {},
           treeFor() {},
         };
 
-        project.initializeAddons = function() {
+        project.initializeAddons = function () {
           this.addons = [addon];
         };
 
@@ -999,15 +980,15 @@ describe('EmberApp', function() {
         });
       });
 
-      it('addonTreesFor returns an empty array if no addons return a tree', function() {
+      it('addonTreesFor returns an empty array if no addons return a tree', function () {
         expect(app.addonTreesFor('blah')).to.deep.equal([]);
       });
 
-      it('addonTreesFor calls treesFor on the addon', function() {
+      it('addonTreesFor calls treesFor on the addon', function () {
         let sampleAddon = project.addons[0];
         let actualTreeName;
 
-        sampleAddon.treeFor = function(name) {
+        sampleAddon.treeFor = function (name) {
           actualTreeName = name;
 
           return 'blazorz';
@@ -1017,7 +998,7 @@ describe('EmberApp', function() {
         expect(actualTreeName).to.equal('blah');
       });
 
-      it('addonTreesFor does not throw an error if treeFor is not defined', function() {
+      it('addonTreesFor does not throw an error if treeFor is not defined', function () {
         delete addon.treeFor;
 
         app = new EmberApp({
@@ -1029,8 +1010,8 @@ describe('EmberApp', function() {
         }).not.to.throw(/addon must implement the `treeFor`/);
       });
 
-      describe('addonTreesFor is called properly', function() {
-        beforeEach(function() {
+      describe('addonTreesFor is called properly', function () {
+        beforeEach(function () {
           app = new EmberApp({
             project,
           });
@@ -1039,10 +1020,10 @@ describe('EmberApp', function() {
           td.when(app.addonTreesFor(), { ignoreExtraArgs: true }).thenReturn(['batman']);
         });
 
-        it('getAppJavascript calls addonTreesFor', function() {
+        it('getAppJavascript calls addonTreesFor', function () {
           app.getAppJavascript();
 
-          let args = td.explain(app.addonTreesFor).calls.map(function(call) {
+          let args = td.explain(app.addonTreesFor).calls.map(function (call) {
             return call.args[0];
           });
 
@@ -1051,8 +1032,8 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('toArray', function() {
-      it('excludes `tests` tree from resulting array if the tree is not present', function() {
+    describe('toArray', function () {
+      it('excludes `tests` tree from resulting array if the tree is not present', function () {
         app = new EmberApp({
           project,
           trees: {
@@ -1072,15 +1053,15 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('toTree', function() {
-      beforeEach(function() {
+    describe('toTree', function () {
+      beforeEach(function () {
         addon = {
           included() {},
           treeFor() {},
           postprocessTree: td.function(),
         };
 
-        project.initializeAddons = function() {
+        project.initializeAddons = function () {
           this.addons = [addon];
         };
 
@@ -1091,7 +1072,7 @@ describe('EmberApp', function() {
         });
       });
 
-      it('calls postProcessTree if defined', function() {
+      it('calls postProcessTree if defined', function () {
         app.toArray = td.function();
         app._legacyPackage = td.function();
 
@@ -1101,7 +1082,7 @@ describe('EmberApp', function() {
           addon.postprocessTree(
             'all',
             td.matchers.argThat(
-              t => t.constructor === BroccoliMergeTrees && t._inputNodes.length === 1 && t._inputNodes[0] === 'bar'
+              (t) => t.constructor === BroccoliMergeTrees && t._inputNodes.length === 1 && t._inputNodes[0] === 'bar'
             )
           )
         ).thenReturn('derp');
@@ -1109,7 +1090,7 @@ describe('EmberApp', function() {
         expect(app.toTree()).to.equal('derp');
       });
 
-      it('calls addonPostprocessTree', function() {
+      it('calls addonPostprocessTree', function () {
         app.toArray = td.function();
         app.addonPostprocessTree = td.function();
         app._legacyPackage = td.function();
@@ -1120,7 +1101,7 @@ describe('EmberApp', function() {
           app.addonPostprocessTree(
             'all',
             td.matchers.argThat(
-              t => t.constructor === BroccoliMergeTrees && t._inputNodes.length === 1 && t._inputNodes[0] === 'bar'
+              (t) => t.constructor === BroccoliMergeTrees && t._inputNodes.length === 1 && t._inputNodes[0] === 'bar'
             )
           )
         ).thenReturn('blap');
@@ -1128,7 +1109,7 @@ describe('EmberApp', function() {
         expect(app.toTree()).to.equal('blap');
       });
 
-      it('calls each addon postprocessTree hook', function() {
+      it('calls each addon postprocessTree hook', function () {
         mockTemplateRegistry(app);
 
         app.index = td.function();
@@ -1144,7 +1125,7 @@ describe('EmberApp', function() {
 
         expect(app.toTree()).to.equal('blap');
 
-        let args = td.explain(addon.postprocessTree).calls.map(function(call) {
+        let args = td.explain(addon.postprocessTree).calls.map(function (call) {
           return call.args[0];
         });
 
@@ -1152,27 +1133,27 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('addons can be disabled', function() {
-      beforeEach(function() {
+    describe('addons can be disabled', function () {
+      beforeEach(function () {
         projectPath = path.resolve(__dirname, '../../fixtures/addon/env-addons');
         const packageContents = require(path.join(projectPath, 'package.json'));
         let cli = new MockCLI();
         project = new Project(projectPath, packageContents, cli.ui, cli);
       });
 
-      afterEach(function() {
+      afterEach(function () {
         process.env.EMBER_ENV = undefined;
       });
 
-      describe('isEnabled is called properly', function() {
-        describe('with environment', function() {
+      describe('isEnabled is called properly', function () {
+        describe('with environment', function () {
           let emberFooEnvAddonFixture;
 
-          beforeEach(function() {
+          beforeEach(function () {
             emberFooEnvAddonFixture = require(path.resolve(projectPath, 'node_modules/ember-foo-env-addon/index.js'));
           });
 
-          it('development', function() {
+          it('development', function () {
             process.env.EMBER_ENV = 'development';
             let app = new EmberApp({ project });
 
@@ -1182,7 +1163,7 @@ describe('EmberApp', function() {
             expect(app.project.addons.length).to.equal(8);
           });
 
-          it('foo', function() {
+          it('foo', function () {
             process.env.EMBER_ENV = 'foo';
             let app = new EmberApp({ project });
 
@@ -1194,8 +1175,8 @@ describe('EmberApp', function() {
         });
       });
 
-      describe('blacklist', function() {
-        it('prevents addons to be added to the project', function() {
+      describe('blacklist', function () {
+        it('prevents addons to be added to the project', function () {
           process.env.EMBER_ENV = 'foo';
 
           let app = new EmberApp({
@@ -1210,7 +1191,7 @@ describe('EmberApp', function() {
           expect(app.project.addons.length).to.equal(8);
         });
 
-        it('throws if unavailable addon is specified', function() {
+        it('throws if unavailable addon is specified', function () {
           function load() {
             process.env.EMBER_ENV = 'foo';
 
@@ -1226,8 +1207,8 @@ describe('EmberApp', function() {
         });
       });
 
-      describe('whitelist', function() {
-        it('prevents non-whitelisted addons to be added to the project', function() {
+      describe('whitelist', function () {
+        it('prevents non-whitelisted addons to be added to the project', function () {
           process.env.EMBER_ENV = 'foo';
 
           let app = new EmberApp({
@@ -1242,7 +1223,7 @@ describe('EmberApp', function() {
           expect(app.project.addons.length).to.equal(1);
         });
 
-        it('throws if unavailable addon is specified', function() {
+        it('throws if unavailable addon is specified', function () {
           function load() {
             process.env.EMBER_ENV = 'foo';
             app = new EmberApp({
@@ -1257,8 +1238,8 @@ describe('EmberApp', function() {
         });
       });
 
-      describe('blacklist wins over whitelist', function() {
-        it('prevents addon to be added to the project', function() {
+      describe('blacklist wins over whitelist', function () {
+        it('prevents addon to be added to the project', function () {
           process.env.EMBER_ENV = 'foo';
           app = new EmberApp({
             project,
@@ -1273,13 +1254,13 @@ describe('EmberApp', function() {
       });
     });
 
-    describe('addonLintTree', function() {
-      beforeEach(function() {
+    describe('addonLintTree', function () {
+      beforeEach(function () {
         addon = {
           lintTree: td.function(),
         };
 
-        project.initializeAddons = function() {
+        project.initializeAddons = function () {
           this.addons = [addon];
         };
 
@@ -1288,11 +1269,11 @@ describe('EmberApp', function() {
         });
       });
 
-      it('does not throw an error if lintTree is not defined', function() {
+      it('does not throw an error if lintTree is not defined', function () {
         app.addonLintTree();
       });
 
-      it('calls lintTree on the addon', function() {
+      it('calls lintTree on the addon', function () {
         app.addonLintTree('blah', 'blam');
 
         td.verify(addon.lintTree('blah', 'blam'));
@@ -1300,25 +1281,25 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('import', function() {
-    beforeEach(function() {
+  describe('import', function () {
+    beforeEach(function () {
       app = new EmberApp({
         project,
       });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       process.env.EMBER_ENV = undefined;
     });
 
-    it('appends dependencies to vendor by default', function() {
+    it('appends dependencies to vendor by default', function () {
       app.import('vendor/moment.js');
       let outputFile = app._scriptOutputFiles['/assets/vendor.js'];
 
       expect(outputFile).to.be.instanceof(Array);
       expect(outputFile.indexOf('vendor/moment.js')).to.equal(outputFile.length - 1);
     });
-    it('appends dependencies', function() {
+    it('appends dependencies', function () {
       app.import('vendor/moment.js', { type: 'vendor' });
 
       let outputFile = app._scriptOutputFiles['/assets/vendor.js'];
@@ -1327,7 +1308,7 @@ describe('EmberApp', function() {
       expect(outputFile.indexOf('vendor/moment.js')).to.equal(outputFile.length - 1);
     });
 
-    it('prepends dependencies', function() {
+    it('prepends dependencies', function () {
       app.import('vendor/es5-shim.js', { type: 'vendor', prepend: true });
 
       let outputFile = app._scriptOutputFiles['/assets/vendor.js'];
@@ -1336,7 +1317,7 @@ describe('EmberApp', function() {
       expect(outputFile.indexOf('vendor/es5-shim.js')).to.equal(0);
     });
 
-    it('prepends dependencies to outputFile', function() {
+    it('prepends dependencies to outputFile', function () {
       app.import('vendor/moment.js', { outputFile: 'moment.js', prepend: true });
 
       let outputFile = app._scriptOutputFiles['moment.js'];
@@ -1345,7 +1326,7 @@ describe('EmberApp', function() {
       expect(outputFile.indexOf('vendor/moment.js')).to.equal(0);
     });
 
-    it('appends dependencies to outputFile', function() {
+    it('appends dependencies to outputFile', function () {
       app.import('vendor/moment.js', { outputFile: 'moment.js' });
 
       let outputFile = app._scriptOutputFiles['moment.js'];
@@ -1354,7 +1335,7 @@ describe('EmberApp', function() {
       expect(outputFile.indexOf('vendor/moment.js')).to.equal(outputFile.length - 1);
     });
 
-    it('defaults to development if production is not set', function() {
+    it('defaults to development if production is not set', function () {
       process.env.EMBER_ENV = 'production';
       app.import({
         development: 'vendor/jquery.js',
@@ -1364,7 +1345,7 @@ describe('EmberApp', function() {
       expect(outputFile.indexOf('vendor/jquery.js')).to.equal(outputFile.length - 1);
     });
 
-    it('honors explicitly set to null in environment', function() {
+    it('honors explicitly set to null in environment', function () {
       process.env.EMBER_ENV = 'production';
       // set EMBER_ENV before creating the project
 
@@ -1380,7 +1361,7 @@ describe('EmberApp', function() {
       expect(app._scriptOutputFiles['/assets/vendor.js']).to.not.contain('vendor/jquery.js');
     });
 
-    it('normalizes asset path correctly', function() {
+    it('normalizes asset path correctly', function () {
       app.import('vendor\\path\\to\\lib.js', { type: 'vendor' });
       app.import('vendor/path/to/lib2.js', { type: 'vendor' });
 
@@ -1388,7 +1369,7 @@ describe('EmberApp', function() {
       expect(app._scriptOutputFiles['/assets/vendor.js']).to.contain('vendor/path/to/lib2.js');
     });
 
-    it('option.using throws exception given invalid inputs', function() {
+    it('option.using throws exception given invalid inputs', function () {
       // `using` is looped over if given, we should ensure this throws an exception with proper error message
       expect(() => {
         app.import('vendor/path/to/lib1.js', { using: 1 });
@@ -1408,11 +1389,11 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('vendorFiles', function() {
+  describe('vendorFiles', function () {
     let defaultVendorFiles = ['jquery.js', 'ember.js', 'app-shims.js'];
 
-    describe('handlebars.js', function() {
-      it('does not app.import handlebars if not present in bower.json', function() {
+    describe('handlebars.js', function () {
+      it('does not app.import handlebars if not present in bower.json', function () {
         let app = new EmberApp({
           project,
         });
@@ -1420,7 +1401,7 @@ describe('EmberApp', function() {
         expect(app.vendorFiles).not.to.include.keys('handlebars.js');
       });
 
-      it('includes handlebars if present in bower.json', function() {
+      it('includes handlebars if present in bower.json', function () {
         projectPath = path.resolve(__dirname, '../../fixtures/project-with-handlebars');
         project = setupProject(projectPath);
 
@@ -1431,7 +1412,7 @@ describe('EmberApp', function() {
         expect(app.vendorFiles).to.include.keys('handlebars.js');
       });
 
-      it('includes handlebars if present in provided `vendorFiles`', function() {
+      it('includes handlebars if present in provided `vendorFiles`', function () {
         let app = new EmberApp({
           project,
           vendorFiles: {
@@ -1443,14 +1424,14 @@ describe('EmberApp', function() {
       });
     });
 
-    it('defines vendorFiles by default', function() {
+    it('defines vendorFiles by default', function () {
       app = new EmberApp({
         project,
       });
       expect(Object.keys(app.vendorFiles)).to.deep.equal(defaultVendorFiles);
     });
 
-    it('redefines a location of a vendor asset', function() {
+    it('redefines a location of a vendor asset', function () {
       app = new EmberApp({
         project,
 
@@ -1461,7 +1442,7 @@ describe('EmberApp', function() {
       expect(app.vendorFiles['ember.js']).to.equal('vendor/ember.js');
     });
 
-    it('defines vendorFiles in order even when option for it is passed', function() {
+    it('defines vendorFiles in order even when option for it is passed', function () {
       app = new EmberApp({
         project,
 
@@ -1472,17 +1453,17 @@ describe('EmberApp', function() {
       expect(Object.keys(app.vendorFiles)).to.deep.equal(defaultVendorFiles);
     });
 
-    it('does not include jquery if the app has `@ember/jquery` installed', function() {
-      project.initializeAddons = function() {
+    it('does not include jquery if the app has `@ember/jquery` installed', function () {
+      project.initializeAddons = function () {
         this.addons = [{ name: '@ember/jquery' }];
       };
       app = new EmberApp({ project });
-      let filesWithoutJQuery = defaultVendorFiles.filter(e => e !== 'jquery.js');
+      let filesWithoutJQuery = defaultVendorFiles.filter((e) => e !== 'jquery.js');
       expect(Object.keys(app.vendorFiles)).to.deep.equal(filesWithoutJQuery);
     });
 
-    it('does not include jquery if the app has `@ember/optional-features` with the `jquery-integration` FF turned off', function() {
-      project.initializeAddons = function() {
+    it('does not include jquery if the app has `@ember/optional-features` with the `jquery-integration` FF turned off', function () {
+      project.initializeAddons = function () {
         this.addons = [
           {
             name: 'ember-source',
@@ -1497,11 +1478,11 @@ describe('EmberApp', function() {
         ];
       };
       app = new EmberApp({ project, vendorFiles: { 'ember-testing.js': null } });
-      let filesWithoutJQuery = defaultVendorFiles.filter(e => e !== 'jquery.js');
+      let filesWithoutJQuery = defaultVendorFiles.filter((e) => e !== 'jquery.js');
       expect(Object.keys(app.vendorFiles)).to.deep.equal(filesWithoutJQuery);
     });
 
-    it('removes dependency in vendorFiles', function() {
+    it('removes dependency in vendorFiles', function () {
       app = new EmberApp({
         project,
 
@@ -1515,7 +1496,7 @@ describe('EmberApp', function() {
       expect(vendorFiles).to.not.contain('handlebars.js');
     });
 
-    it('defaults to ember.debug.js if exists in bower_components', function() {
+    it('defaults to ember.debug.js if exists in bower_components', function () {
       let root = path.resolve(__dirname, '../../fixtures/app/with-default-ember-debug');
 
       app = new EmberApp({
@@ -1526,7 +1507,7 @@ describe('EmberApp', function() {
       expect(files.development).to.equal('bower_components/ember/ember.debug.js');
     });
 
-    it('switches the default ember.debug.js to ember.js if it does not exist', function() {
+    it('switches the default ember.debug.js to ember.js if it does not exist', function () {
       let root = path.resolve(__dirname, '../../fixtures/app/without-ember-debug');
 
       app = new EmberApp({
@@ -1537,7 +1518,7 @@ describe('EmberApp', function() {
       expect(files.development).to.equal('bower_components/ember/ember.js');
     });
 
-    it('does not clobber an explicitly configured ember development file', function() {
+    it('does not clobber an explicitly configured ember development file', function () {
       app = new EmberApp({
         project,
 
@@ -1552,7 +1533,7 @@ describe('EmberApp', function() {
     });
   });
 
-  it('fails with invalid type', function() {
+  it('fails with invalid type', function () {
     let app = new EmberApp({
       project,
     });
@@ -1564,8 +1545,8 @@ describe('EmberApp', function() {
     );
   });
 
-  describe('_initOptions', function() {
-    it('sets the tests directory as watched when tests are enabled', function() {
+  describe('_initOptions', function () {
+    it('sets the tests directory as watched when tests are enabled', function () {
       let app = new EmberApp({
         project,
       });
@@ -1576,7 +1557,7 @@ describe('EmberApp', function() {
 
       expect(app.options.trees.tests).to.be.an.instanceOf(WatchedDir);
     });
-    it('sets the tests directory as unwatched when tests are disabled', function() {
+    it('sets the tests directory as unwatched when tests are disabled', function () {
       let app = new EmberApp({
         project,
       });
@@ -1589,8 +1570,8 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('_resolveLocal', function() {
-    it('resolves a path relative to the project root', function() {
+  describe('_resolveLocal', function () {
+    it('resolves a path relative to the project root', function () {
       let app = new EmberApp({
         project,
       });
@@ -1600,17 +1581,17 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('_concatFiles()', function() {
-    beforeEach(function() {
+  describe('_concatFiles()', function () {
+    beforeEach(function () {
       app = new EmberApp({ project });
     });
 
-    describe('concat order', function() {
-      beforeEach(function() {
+    describe('concat order', function () {
+      beforeEach(function () {
         mockTemplateRegistry(app);
       });
 
-      it('correctly orders concats from app.styles()', function() {
+      it('correctly orders concats from app.styles()', function () {
         app.import('files/b.css');
         app.import('files/c.css');
         app.import('files/a.css', { prepend: true });
@@ -1624,7 +1605,7 @@ describe('EmberApp', function() {
         ]);
       });
 
-      it('correctly orders concats from app.testFiles()', function() {
+      it('correctly orders concats from app.testFiles()', function () {
         app.import('files/b.js', { type: 'test' });
         app.import('files/c.js', { type: 'test' });
         app.import('files/a.js', { type: 'test' });
@@ -1646,16 +1627,16 @@ describe('EmberApp', function() {
     });
   });
 
-  describe('deprecations', function() {
-    it('shows ember-cli-shims deprecation', function() {
+  describe('deprecations', function () {
+    it('shows ember-cli-shims deprecation', function () {
       let root = path.resolve(__dirname, '../../fixtures/app/npm');
       let project = setupProject(root);
-      project.require = function() {
+      project.require = function () {
         return {
           version: '5.0.0',
         };
       };
-      project.initializeAddons = function() {
+      project.initializeAddons = function () {
         this.addons = [
           {
             name: 'ember-cli-babel',
@@ -1673,9 +1654,9 @@ describe('EmberApp', function() {
       );
     });
 
-    describe('jQuery integration', function() {
-      it('shows deprecation', function() {
-        project.initializeAddons = function() {
+    describe('jQuery integration', function () {
+      it('shows deprecation', function () {
+        project.initializeAddons = function () {
           this.addons = [{ name: 'ember-source', paths: {} }];
         };
         app = new EmberApp({ project });
@@ -1685,8 +1666,8 @@ describe('EmberApp', function() {
         );
       });
 
-      it('does not show deprecation if the app has `@ember/jquery` installed', function() {
-        project.initializeAddons = function() {
+      it('does not show deprecation if the app has `@ember/jquery` installed', function () {
+        project.initializeAddons = function () {
           this.addons = [{ name: 'ember-source', paths: {} }, { name: '@ember/jquery' }];
         };
         app = new EmberApp({ project });
@@ -1695,8 +1676,8 @@ describe('EmberApp', function() {
         );
       });
 
-      it('does not show deprecation if the app has `@ember/optional-features` with the `jquery-integration` FF turned off', function() {
-        project.initializeAddons = function() {
+      it('does not show deprecation if the app has `@ember/optional-features` with the `jquery-integration` FF turned off', function () {
+        project.initializeAddons = function () {
           this.addons = [
             { name: 'ember-source', paths: {} },
             {

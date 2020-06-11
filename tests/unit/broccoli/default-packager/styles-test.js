@@ -2,7 +2,6 @@
 
 const expect = require('chai').expect;
 const Funnel = require('broccoli-funnel');
-const { isExperimentEnabled } = require('../../../../lib/experiments');
 const DefaultPackager = require('../../../../lib/broccoli/default-packager');
 const broccoliTestHelper = require('broccoli-test-helper');
 const defaultPackagerHelpers = require('../../../helpers/default-packager');
@@ -11,7 +10,7 @@ const buildOutput = broccoliTestHelper.buildOutput;
 const createTempDir = broccoliTestHelper.createTempDir;
 const setupRegistryFor = defaultPackagerHelpers.setupRegistryFor;
 
-describe('Default Packager: Styles', function() {
+describe('Default Packager: Styles', function () {
   let input, output;
 
   let styleOutputFiles = {
@@ -62,23 +61,23 @@ describe('Default Packager: Styles', function() {
     },
   };
 
-  before(async function() {
+  before(async function () {
     input = await createTempDir();
 
     input.write(MODULES);
   });
 
-  after(async function() {
+  after(async function () {
     await input.dispose();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     if (output) {
       await output.dispose();
     }
   });
 
-  it('caches packaged styles tree', async function() {
+  it('caches packaged styles tree', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -88,7 +87,7 @@ describe('Default Packager: Styles', function() {
         vendorCssFile: '/assets/vendor.css',
       },
 
-      registry: setupRegistryFor('css', function(tree) {
+      registry: setupRegistryFor('css', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/scss$/g, 'css');
@@ -114,7 +113,7 @@ describe('Default Packager: Styles', function() {
     expect(defaultPackager._cachedProcessedStyles._annotation).to.equal('Packaged Styles');
   });
 
-  it('does not minify css files when minification is disabled', async function() {
+  it('does not minify css files when minification is disabled', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -152,7 +151,7 @@ describe('Default Packager: Styles', function() {
     expect(outputFiles.assets['the-best-app-ever.css'].trim()).to.equal('@import "extra.css";\nhtml { height: 100%; }');
   });
 
-  it('minifies css files when minification is enabled', async function() {
+  it('minifies css files when minification is enabled', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -190,7 +189,7 @@ describe('Default Packager: Styles', function() {
     expect(outputFiles.assets['the-best-app-ever.css'].trim()).to.match(/^@import \S+$/, 'css file is minified');
   });
 
-  it('processes css according to the registry', async function() {
+  it('processes css according to the registry', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -200,7 +199,7 @@ describe('Default Packager: Styles', function() {
         vendorCssFile: '/assets/vendor.css',
       },
 
-      registry: setupRegistryFor('css', function(tree, inputPath, outputPath, options) {
+      registry: setupRegistryFor('css', function (tree, inputPath, outputPath, options) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             if (relativePath.includes('app.css')) {
@@ -234,7 +233,7 @@ describe('Default Packager: Styles', function() {
     expect(Object.keys(outputFiles.assets)).to.deep.equal(['the-best-app-ever.zss', 'vendor.css']);
   });
 
-  it('inlines css imports', async function() {
+  it('inlines css imports', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -271,7 +270,7 @@ describe('Default Packager: Styles', function() {
     expect(outputFiles.assets['the-best-app-ever.css'].trim()).to.equal('body{position:relative}html{height:100%}');
   });
 
-  it('runs pre/post-process add-on hooks', async function() {
+  it('runs pre/post-process add-on hooks', async function () {
     let addonPreprocessTreeHookCalled = false;
     let addonPostprocessTreeHookCalled = false;
 
@@ -327,7 +326,7 @@ describe('Default Packager: Styles', function() {
     expect(addonPostprocessTreeHookCalled).to.equal(true);
   });
 
-  it('prevents duplicate inclusion, maintains order: CSS', async function() {
+  it('prevents duplicate inclusion, maintains order: CSS', async function () {
     let importFilesMap = {
       '/assets/vendor.css': [
         'bower_components/1.css',
@@ -370,112 +369,4 @@ describe('Default Packager: Styles', function() {
 
     expect(outputFiles.assets['vendor.css']).to.equal('.third{position:absolute}');
   });
-
-  if (isExperimentEnabled('MODULE_UNIFICATION')) {
-    describe('with module unification layout', function() {
-      let importFilesMap = {
-        '/assets/vendor.css': ['vendor/font-awesome/css/font-awesome.css'],
-      };
-      let input, output, processedSrc;
-
-      let MU_LAYOUT = {
-        vendor: {
-          'font-awesome': {
-            css: {
-              'font-awesome.css': 'body { height: 100%; }',
-            },
-          },
-        },
-        src: {
-          'main.js': '',
-          'resolver.js': '',
-          'router.js': '',
-          ui: {
-            components: {
-              'login-form': {
-                'component.js': '',
-                'template.hbs': '',
-              },
-            },
-            'index.html': '',
-            routes: {
-              application: {
-                'template.hbs': '',
-              },
-            },
-            styles: {
-              'app.css': 'html { height: 100%; }',
-            },
-          },
-        },
-      };
-      let processedSrcFolder = {
-        'the-best-app-ever': {
-          src: MU_LAYOUT,
-          assets: {
-            'the-best-app-ever.css': 'html { height: 100%; }',
-          },
-        },
-      };
-
-      let defaultPackager = new DefaultPackager({
-        name: 'the-best-app-ever',
-
-        distPaths: {
-          appCssFile: { app: '/assets/the-best-app-ever.css' },
-          vendorCssFile: '/assets/vendor.css',
-        },
-
-        registry: {
-          load: () => [],
-        },
-
-        minifyCSS: {
-          enabled: true,
-          options: {
-            processImport: false,
-            relativeTo: 'assets',
-          },
-        },
-
-        styleOutputFiles: importFilesMap,
-
-        isModuleUnificationEnabled: true,
-
-        project: { addons: [] },
-      });
-
-      before(async function() {
-        input = await createTempDir();
-        processedSrc = await createTempDir();
-
-        input.write(MU_LAYOUT);
-        processedSrc.write(processedSrcFolder);
-      });
-
-      after(async function() {
-        await input.dispose();
-        await processedSrc.dispose();
-      });
-
-      afterEach(async function() {
-        await output.dispose();
-      });
-
-      it('processes styles according to the registry', async function() {
-        defaultPackager._cachedProcessedSrc = processedSrc.path();
-
-        output = await buildOutput(defaultPackager.packageStyles(input.path()));
-
-        let outputFiles = output.read();
-
-        expect(outputFiles).to.deep.equal({
-          assets: {
-            'the-best-app-ever.css': 'html{height:100%}',
-            'vendor.css': 'body{height:100%}',
-          },
-        });
-      });
-    });
-  }
 });

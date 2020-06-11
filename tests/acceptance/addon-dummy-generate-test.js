@@ -1,10 +1,8 @@
 'use strict';
 
-const RSVP = require('rsvp');
 const ember = require('../helpers/ember');
 const fs = require('fs-extra');
 const path = require('path');
-let remove = RSVP.denodeify(fs.remove);
 let root = process.cwd();
 let tmproot = path.join(root, 'tmp');
 const Blueprint = require('../../lib/models/blueprint');
@@ -15,25 +13,25 @@ const chai = require('../chai');
 let expect = chai.expect;
 let file = chai.file;
 
-describe('Acceptance: ember generate in-addon-dummy', function() {
+describe('Acceptance: ember generate in-addon-dummy', function () {
   this.timeout(20000);
 
-  before(function() {
+  before(function () {
     BlueprintNpmTask.disableNPM(Blueprint);
   });
 
-  after(function() {
+  after(function () {
     BlueprintNpmTask.restoreNPM(Blueprint);
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     let tmpdir = await mkTmpDirIn(tmproot);
     process.chdir(tmpdir);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     process.chdir(root);
-    return remove(tmproot);
+    return fs.remove(tmproot);
   });
 
   function initAddon() {
@@ -49,12 +47,12 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
   function generateInAddon(args) {
     let generateArgs = ['generate'].concat(args);
 
-    return initAddon().then(function() {
+    return initAddon().then(function () {
       return ember(generateArgs);
     });
   }
 
-  it('dummy blueprint foo', async function() {
+  it('dummy blueprint foo', async function () {
     await generateInAddon(['blueprint', 'foo', '--dummy']);
 
     expect(file('blueprints/foo/index.js')).to.contain(
@@ -75,7 +73,7 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
     );
   });
 
-  it('dummy blueprint foo/bar', async function() {
+  it('dummy blueprint foo/bar', async function () {
     await generateInAddon(['blueprint', 'foo/bar', '--dummy']);
 
     expect(file('blueprints/foo/bar/index.js')).to.contain(
@@ -96,7 +94,7 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
     );
   });
 
-  it('dummy http-mock foo', async function() {
+  it('dummy http-mock foo', async function () {
     await generateInAddon(['http-mock', 'foo', '--dummy']);
 
     expect(file('server/index.js')).to.contain('mocks.forEach(route => route(app));');
@@ -153,7 +151,7 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('dummy http-mock foo-bar', async function() {
+  it('dummy http-mock foo-bar', async function () {
     await generateInAddon(['http-mock', 'foo-bar', '--dummy']);
 
     expect(file('server/index.js')).to.contain('mocks.forEach(route => route(app));');
@@ -210,7 +208,7 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('dummy http-proxy foo', async function() {
+  it('dummy http-proxy foo', async function () {
     await generateInAddon(['http-proxy', 'foo', 'http://localhost:5000', '--dummy']);
 
     expect(file('server/index.js')).to.contain('proxies.forEach(route => route(app));');
@@ -238,7 +236,7 @@ describe('Acceptance: ember generate in-addon-dummy', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('dummy server', async function() {
+  it('dummy server', async function () {
     await generateInAddon(['server', '--dummy']);
     expect(file('server/index.js')).to.exist;
   });

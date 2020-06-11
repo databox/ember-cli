@@ -3,26 +3,27 @@
 const AddonInstallTask = require('../../../lib/tasks/addon-install');
 const expect = require('chai').expect;
 const CoreObject = require('core-object');
-const Promise = require('rsvp').Promise;
+const MockUi = require('console-ui/mock');
 
-describe('addon install task', function() {
+describe('addon install task', function () {
   let ui;
   let project;
 
-  beforeEach(function() {
-    ui = {
-      startProgress() {},
+  beforeEach(function () {
+    ui = new MockUi();
+    project = {
+      reloadAddons() {},
     };
   });
 
-  afterEach(function() {
+  afterEach(function () {
     // ui.stopProgress();
     ui = undefined;
     project = undefined;
   });
 
-  describe('when no save flag specified in blueprintOptions', function() {
-    it('calls npm install with --save-dev as a default', function(done) {
+  describe('when no save flag specified in blueprintOptions', function () {
+    it('calls npm install with --save-dev as a default', function (done) {
       let MockNpmInstallTask = CoreObject.extend({
         run(options) {
           expect(options.save).to.not.be.true;
@@ -42,8 +43,8 @@ describe('addon install task', function() {
     });
   });
 
-  describe('when save flag specified in blueprintOptions', function() {
-    it('calls npm install with --save', function(done) {
+  describe('when save flag specified in blueprintOptions', function () {
+    it('calls npm install with --save', function (done) {
       let MockNpmInstallTask = CoreObject.extend({
         run(options) {
           expect(options.save).to.be.true;
@@ -67,8 +68,8 @@ describe('addon install task', function() {
     });
   });
 
-  describe('when saveDev flag specified in blueprintOptions', function() {
-    it('calls npm install with --save-dev', function(done) {
+  describe('when saveDev flag specified in blueprintOptions', function () {
+    it('calls npm install with --save-dev', function (done) {
       let MockNpmInstallTask = CoreObject.extend({
         run(options) {
           expect(options.save).to.not.be.true;
@@ -92,8 +93,8 @@ describe('addon install task', function() {
     });
   });
 
-  describe('when both save and saveDev flag specified in blueprintOptions', function() {
-    it('calls npm install with --save', function(done) {
+  describe('when both save and saveDev flag specified in blueprintOptions', function () {
+    it('calls npm install with --save', function (done) {
       let MockNpmInstallTask = CoreObject.extend({
         run(options) {
           expect(options.save).to.be.true;

@@ -1,41 +1,37 @@
 'use strict';
 
-const RSVP = require('rsvp');
 const ember = require('../helpers/ember');
 const path = require('path');
 const fs = require('fs-extra');
-let outputFile = RSVP.denodeify(fs.outputFile);
-let remove = RSVP.denodeify(fs.remove);
 let root = process.cwd();
 let tmproot = path.join(root, 'tmp');
 const Blueprint = require('../../lib/models/blueprint');
 const BlueprintNpmTask = require('ember-cli-internal-test-helpers/lib/helpers/disable-npm-on-blueprint');
 const mkTmpDirIn = require('../../lib/utilities/mk-tmp-dir-in');
-const { isExperimentEnabled } = require('../../lib/experiments');
 
 const chai = require('../chai');
 let expect = chai.expect;
 let file = chai.file;
 
-describe('Acceptance: ember generate in-addon', function() {
+describe('Acceptance: ember generate in-addon', function () {
   this.timeout(20000);
 
-  before(function() {
+  before(function () {
     BlueprintNpmTask.disableNPM(Blueprint);
   });
 
-  after(function() {
+  after(function () {
     BlueprintNpmTask.restoreNPM(Blueprint);
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     let tmpdir = await mkTmpDirIn(tmproot);
     process.chdir(tmpdir);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     process.chdir(root);
-    return remove(tmproot);
+    return fs.remove(tmproot);
   });
 
   function initAddon(name) {
@@ -56,12 +52,12 @@ describe('Acceptance: ember generate in-addon', function() {
       name = arguments[1];
     }
 
-    return initAddon(name).then(function() {
+    return initAddon(name).then(function () {
       return ember(generateArgs);
     });
   }
 
-  it('in-addon addon-import cannot be called directly', async function() {
+  it('in-addon addon-import cannot be called directly', async function () {
     try {
       await generateInAddon(['addon-import', 'foo']);
     } catch (error) {
@@ -70,42 +66,38 @@ describe('Acceptance: ember generate in-addon', function() {
     }
   });
 
-  if (!isExperimentEnabled('MODULE_UNIFICATION')) {
-    it('runs the `addon-import` blueprint from a classic addon', async function() {
-      await initAddon('my-addon');
+  it('runs the `addon-import` blueprint from a classic addon', async function () {
+    await initAddon('my-addon');
 
-      await outputFile(
-        'blueprints/service/files/__root__/__path__/__name__.js',
-        "import Service from '@ember/service';\n" + 'export default Service.extend({ });\n'
-      );
+    await fs.outputFile(
+      'blueprints/service/files/__root__/__path__/__name__.js',
+      "import Service from '@ember/service';\n" + 'export default Service.extend({ });\n'
+    );
 
-      await ember(['generate', 'service', 'session']);
+    await ember(['generate', 'service', 'session']);
 
-      expect(file('app/services/session.js')).to.exist;
-    });
-  }
+    expect(file('app/services/session.js')).to.exist;
+  });
 
-  if (!isExperimentEnabled('MODULE_UNIFICATION')) {
-    it('runs a custom "*-addon" blueprint from a classic addon', async function() {
-      await initAddon('my-addon');
+  it('runs a custom "*-addon" blueprint from a classic addon', async function () {
+    await initAddon('my-addon');
 
-      await outputFile(
-        'blueprints/service/files/__root__/__path__/__name__.js',
-        "import Service from '@ember/service';\n" + 'export default Service.extend({ });\n'
-      );
+    await fs.outputFile(
+      'blueprints/service/files/__root__/__path__/__name__.js',
+      "import Service from '@ember/service';\n" + 'export default Service.extend({ });\n'
+    );
 
-      await outputFile(
-        'blueprints/service-addon/files/app/services/session.js',
-        "export { default } from 'somewhere';\n"
-      );
+    await fs.outputFile(
+      'blueprints/service-addon/files/app/services/session.js',
+      "export { default } from 'somewhere';\n"
+    );
 
-      await ember(['generate', 'service', 'session']);
+    await ember(['generate', 'service', 'session']);
 
-      expect(file('app/services/session.js')).to.exist;
-    });
-  }
+    expect(file('app/services/session.js')).to.exist;
+  });
 
-  it('in-addon blueprint foo', async function() {
+  it('in-addon blueprint foo', async function () {
     await generateInAddon(['blueprint', 'foo']);
 
     expect(file('blueprints/foo/index.js')).to.contain(
@@ -126,7 +118,7 @@ describe('Acceptance: ember generate in-addon', function() {
     );
   });
 
-  it('in-addon blueprint foo/bar', async function() {
+  it('in-addon blueprint foo/bar', async function () {
     await generateInAddon(['blueprint', 'foo/bar']);
 
     expect(file('blueprints/foo/bar/index.js')).to.contain(
@@ -147,7 +139,7 @@ describe('Acceptance: ember generate in-addon', function() {
     );
   });
 
-  it('in-addon http-mock foo', async function() {
+  it('in-addon http-mock foo', async function () {
     await generateInAddon(['http-mock', 'foo']);
 
     expect(file('server/index.js')).to.contain('mocks.forEach(route => route(app));');
@@ -204,7 +196,7 @@ describe('Acceptance: ember generate in-addon', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('in-addon http-mock foo-bar', async function() {
+  it('in-addon http-mock foo-bar', async function () {
     await generateInAddon(['http-mock', 'foo-bar']);
 
     expect(file('server/index.js')).to.contain('mocks.forEach(route => route(app));');
@@ -261,7 +253,7 @@ describe('Acceptance: ember generate in-addon', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('in-addon http-proxy foo', async function() {
+  it('in-addon http-proxy foo', async function () {
     await generateInAddon(['http-proxy', 'foo', 'http://localhost:5000']);
 
     expect(file('server/index.js')).to.contain('proxies.forEach(route => route(app));');
@@ -289,7 +281,7 @@ describe('Acceptance: ember generate in-addon', function() {
     expect(file('server/.jshintrc')).to.contain('{\n  "node": true\n}');
   });
 
-  it('in-addon server', async function() {
+  it('in-addon server', async function () {
     await generateInAddon(['server']);
     expect(file('server/index.js')).to.exist;
   });

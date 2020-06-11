@@ -318,13 +318,6 @@ module.exports = {
               overridden: false
             },
             {
-              name: 'packages',
-              description: 'Generates a packages directory for module unification in-repo addons.',
-              availableOptions: [],
-              anonymousOptions: ['name'],
-              overridden: false
-            },
-            {
               name: 'server',
               description: 'Generates a server directory for mocks and proxies.',
               availableOptions: [],
@@ -366,7 +359,7 @@ module.exports = {
     },
     {
       name: 'init',
-      description: 'Creates a new ember-cli project in the current folder.',
+      description: 'Reinitializes a new ember-cli project in the current folder.',
       aliases: [],
       works: 'everywhere',
       availableOptions: [

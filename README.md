@@ -3,22 +3,19 @@ ember-cli
 ==============================================================================
 
 [![Latest npm release][npm-badge]][npm-badge-url]
-[![TravisCI Build Status][travis-badge]][travis-badge-url]
-[![AppVeyor Build Status][appveyor-badge]][appveyor-badge-url]
+[![GitHub Actions CI][github-actions-badge]][github-actions-ci-url]
 [![Test Coverage][coveralls-badge]][coveralls-badge-url]
 [![Code Climate][codeclimate-badge]][codeclimate-badge-url]
 
 [logo]: https://avatars0.githubusercontent.com/u/10262982?v=3&s=150
 [npm-badge]: https://img.shields.io/npm/v/ember-cli.svg
 [npm-badge-url]: https://www.npmjs.com/package/ember-cli
-[travis-badge]: https://img.shields.io/travis/ember-cli/ember-cli/master.svg?label=TravisCI
-[travis-badge-url]: https://travis-ci.org/ember-cli/ember-cli
-[appveyor-badge]: https://img.shields.io/appveyor/ci/embercli/ember-cli/master.svg?label=AppVeyor
-[appveyor-badge-url]: https://ci.appveyor.com/project/embercli/ember-cli/branch/master
 [coveralls-badge]: https://img.shields.io/coveralls/ember-cli/ember-cli/master.svg
 [coveralls-badge-url]: https://coveralls.io/github/ember-cli/ember-cli
 [codeclimate-badge]: https://codeclimate.com/github/ember-cli/ember-cli/badges/gpa.svg
 [codeclimate-badge-url]: https://codeclimate.com/github/ember-cli/ember-cli
+[github-actions-badge]: https://github.com/ember-cli/ember-cli/workflows/CI/badge.svg
+[github-actions-ci-url]: https://github.com/ember-cli/ember-cli/actions?query=workflow%3ACI
 
 The Ember.js command line utility.
 
@@ -49,8 +46,8 @@ Usage
 After installation the `ember` CLI tool will be available to you. It is the
 entrypoint for all the functionality mentioned above.
 
-You can call `ember <command> --help` to find out more about all of the
-following commands or visit <https://cli.emberjs.com/release/> to read
+You can call `ember <command> --help` to find out more about [all of the
+following commands](https://cli.emberjs.com/release/basic-use/cli-commands/) or visit <https://cli.emberjs.com/release/> to read
 the in-depth documentation.
 
 

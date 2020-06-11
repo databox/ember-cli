@@ -3,7 +3,6 @@
 const stew = require('broccoli-stew');
 const Funnel = require('broccoli-funnel');
 const expect = require('chai').expect;
-const { isExperimentEnabled } = require('../../../../lib/experiments');
 const DefaultPackager = require('../../../../lib/broccoli/default-packager');
 const broccoliTestHelper = require('broccoli-test-helper');
 const defaultPackagerHelpers = require('../../../helpers/default-packager');
@@ -12,7 +11,7 @@ const buildOutput = broccoliTestHelper.buildOutput;
 const createTempDir = broccoliTestHelper.createTempDir;
 const setupRegistryFor = defaultPackagerHelpers.setupRegistryFor;
 
-describe('Default Packager: Tests', function() {
+describe('Default Packager: Tests', function () {
   let input, output;
   let name = 'the-best-app-ever';
   let env = 'development';
@@ -109,27 +108,27 @@ describe('Default Packager: Tests', function() {
         // files as the input tree, but the contents will be
         // different
         lintTree(type, tree) {
-          return stew.map(tree, string => string.toUpperCase());
+          return stew.map(tree, (string) => string.toUpperCase());
         },
       },
     ],
   };
 
-  before(async function() {
+  before(async function () {
     input = await createTempDir();
 
     input.write(TESTS);
   });
 
-  after(async function() {
+  after(async function () {
     await input.dispose();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await output.dispose();
   });
 
-  it('caches packaged tests tree', async function() {
+  it('caches packaged tests tree', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -150,7 +149,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     expect(defaultPackager._cachedTests).to.equal(null);
@@ -160,7 +159,7 @@ describe('Default Packager: Tests', function() {
     expect(defaultPackager._cachedTests).to.not.equal(null);
   });
 
-  it('packages test files (with sourcemaps)', async function() {
+  it('packages test files (with sourcemaps)', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -181,7 +180,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     output = await buildOutput(defaultPackager.packageTests(input.path()));
@@ -207,7 +206,7 @@ describe('Default Packager: Tests', function() {
     expect(outputFiles.assets['tests.js']).to.include('EmberENV.TESTS_FILE_LOADED = true;');
   });
 
-  it('packages test files (without sourcemaps)', async function() {
+  it('packages test files (without sourcemaps)', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -229,7 +228,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     output = await buildOutput(defaultPackager.packageTests(input.path()));
@@ -250,7 +249,7 @@ describe('Default Packager: Tests', function() {
     expect(outputFiles.assets['tests.js']).to.include('EmberENV.TESTS_FILE_LOADED = true;');
   });
 
-  it('does not process `addon-test-support` folder', async function() {
+  it('does not process `addon-test-support` folder', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -271,7 +270,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', function(tree) {
+      registry: setupRegistryFor('js', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/js/g, 'js-test');
@@ -325,7 +324,7 @@ describe('Default Packager: Tests', function() {
     });
   });
 
-  it('processes tests files according to the registry', async function() {
+  it('processes tests files according to the registry', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -346,7 +345,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', function(tree) {
+      registry: setupRegistryFor('js', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/js/g, 'js-test');
@@ -400,7 +399,7 @@ describe('Default Packager: Tests', function() {
     });
   });
 
-  it('emits dist/assets/tests.js by default', async function() {
+  it('emits dist/assets/tests.js by default', async function () {
     let emptyInput = await createTempDir();
     let emptyTestFolder = {
       'addon-tree-output': {},
@@ -472,7 +471,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     output = await buildOutput(defaultPackager.packageTests(input.path()));
@@ -493,7 +492,7 @@ describe('Default Packager: Tests', function() {
     emptyInput.dispose();
   });
 
-  it('lintTree results do not "win" over app tests', async function() {
+  it('lintTree results do not "win" over app tests', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -514,7 +513,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: [],
       legacyTestFilesToAppend: [],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     output = await buildOutput(defaultPackager.packageTests(input.path()));
@@ -526,7 +525,7 @@ describe('Default Packager: Tests', function() {
     expect(outputFiles.assets['tests.js']).to.include('// login-test.js');
   });
 
-  it('maintains the concatenation order', async function() {
+  it('maintains the concatenation order', async function () {
     let defaultPackager = new DefaultPackager({
       project,
       name,
@@ -547,7 +546,7 @@ describe('Default Packager: Tests', function() {
       vendorTestStaticStyles: ['vendor/custom/a.css', 'vendor/custom/b.css'],
       legacyTestFilesToAppend: ['vendor/custom/a.js', 'vendor/custom/b.js'],
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
     });
 
     output = await buildOutput(defaultPackager.packageTests(input.path()));
@@ -557,126 +556,4 @@ describe('Default Packager: Tests', function() {
     expect(outputFiles.assets['test-support.js']).to.include('a.js\nb.js');
     expect(outputFiles.assets['test-support.css']).to.include('a.css\nb.css');
   });
-
-  if (isExperimentEnabled('MODULE_UNIFICATION')) {
-    describe('with module unification layout', function() {
-      let input, output;
-
-      let MU_LAYOUT = {
-        vendor: {
-          'ember-cli': {
-            'app-boot.js': 'app-boot.js',
-            'app-config.js': 'app-config.js',
-            'app-prefix.js': 'app-prefix.js',
-            'app-suffix.js': 'app-suffix.js',
-            'test-support-prefix.js': 'test-support-prefix.js',
-            'test-support-suffix.js': 'test-support-suffix.js',
-            'tests-prefix.js': 'tests-prefix.js',
-            'tests-suffix.js': 'tests-suffix.js',
-            'vendor-prefix.js': 'vendor-prefix.js',
-            'vendor-suffix.js': 'vendor-suffix.js',
-          },
-        },
-        tests: {
-          'addon-test-support': {},
-          acceptance: {
-            'login-test.js': ' // login-test.js',
-            'logout-test.js': '',
-          },
-          lint: {
-            'login-test.lint.js': ' // login-test.lint.js',
-            'logout-test.lint.js': '',
-          },
-          'index.html': 'index',
-        },
-        src: {
-          'main.js': '',
-          'resolver.js': '',
-          'router.js': '',
-          ui: {
-            components: {
-              'login-form': {
-                'component-test.js': ' // login-form-component-test',
-                'component.js': '',
-                'template.hbs': '',
-              },
-            },
-            'index.html': '',
-            routes: {
-              application: {
-                'template.hbs': '',
-              },
-            },
-            styles: {
-              'app.css': 'html { height: 100%; }',
-            },
-          },
-        },
-      };
-
-      before(async function() {
-        input = await createTempDir();
-
-        input.write(MU_LAYOUT);
-      });
-
-      after(async function() {
-        await input.dispose();
-      });
-
-      afterEach(async function() {
-        await output.dispose();
-      });
-
-      it('packages test files', async function() {
-        let defaultPackager = new DefaultPackager({
-          project,
-          name,
-          env,
-          areTestsEnabled: true,
-
-          distPaths: {
-            testJsFile: '/assets/tests.js',
-            testSupportJsFile: {
-              testSupport: '/assets/test-support.js',
-              testLoader: '/assets/test-loader.js',
-            },
-            testSupportCssFile: '/assets/test-support.css',
-          },
-
-          customTransformsMap: new Map(),
-
-          isModuleUnificationEnabled: true,
-
-          vendorTestStaticStyles: [],
-          legacyTestFilesToAppend: [],
-
-          registry: setupRegistryFor('js', tree => tree),
-        });
-
-        output = await buildOutput(defaultPackager.packageTests(input.path()));
-
-        let outputFiles = output.read();
-
-        expect(Object.keys(outputFiles.tests)).to.deep.equal(['index.html']);
-
-        expect(Object.keys(outputFiles.assets)).to.deep.equal([
-          'test-support.js',
-          'test-support.map',
-          'tests.js',
-          'tests.map',
-        ]);
-
-        expect(Object.keys(outputFiles)).to.deep.equal(['assets', 'testem.js', 'tests']);
-
-        expect(outputFiles.assets['tests.js']).to.include('login-form-component-test');
-        expect(outputFiles.assets['tests.js']).to.include('login-test.js');
-        expect(outputFiles.assets['tests.js']).to.include('login-test.lint.js');
-        expect(outputFiles.assets['tests.js']).to.include('test-helper');
-        expect(outputFiles.assets['tests.js']).to.include(`define('the-best-app-ever/config/environment'`);
-        expect(outputFiles.assets['tests.js']).to.include(`require('the-best-app-ever/tests/test-helper');`);
-        expect(outputFiles.assets['tests.js']).to.include('EmberENV.TESTS_FILE_LOADED = true;');
-      });
-    });
-  }
 });

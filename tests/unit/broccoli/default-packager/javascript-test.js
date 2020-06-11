@@ -5,14 +5,12 @@ const Funnel = require('broccoli-funnel');
 const DefaultPackager = require('../../../../lib/broccoli/default-packager');
 const broccoliTestHelper = require('broccoli-test-helper');
 const defaultPackagerHelpers = require('../../../helpers/default-packager');
-const { isExperimentEnabled } = require('../../../../lib/experiments');
 
 const buildOutput = broccoliTestHelper.buildOutput;
 const createTempDir = broccoliTestHelper.createTempDir;
-const setupRegistry = defaultPackagerHelpers.setupRegistry;
 const setupRegistryFor = defaultPackagerHelpers.setupRegistryFor;
 
-describe('Default Packager: Javascript', function() {
+describe('Default Packager: Javascript', function () {
   let input, output;
 
   let scriptOutputFiles = {
@@ -93,7 +91,7 @@ describe('Default Packager: Javascript', function() {
       return { a: 1 };
     },
 
-    registry: setupRegistryFor('template', function(tree) {
+    registry: setupRegistryFor('template', function (tree) {
       return new Funnel(tree, {
         getDestinationPath(relativePath) {
           return relativePath.replace(/hbs$/g, 'js');
@@ -104,21 +102,21 @@ describe('Default Packager: Javascript', function() {
     addons: [],
   };
 
-  before(async function() {
+  before(async function () {
     input = await createTempDir();
 
     input.write(MODULES);
   });
 
-  after(async function() {
+  after(async function () {
     await input.dispose();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await output.dispose();
   });
 
-  it('caches packaged javascript tree', async function() {
+  it('caches packaged javascript tree', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -128,7 +126,7 @@ describe('Default Packager: Javascript', function() {
         vendorJsFile: '/assets/vendor.js',
       },
 
-      registry: setupRegistryFor('template', function(tree) {
+      registry: setupRegistryFor('template', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/hbs$/g, 'js');
@@ -150,7 +148,7 @@ describe('Default Packager: Javascript', function() {
     expect(defaultPackager._cachedJavascript._annotation).to.equal('Packaged Javascript');
   });
 
-  it('packages javascript files with sourcemaps on', async function() {
+  it('packages javascript files with sourcemaps on', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -160,7 +158,7 @@ describe('Default Packager: Javascript', function() {
         vendorJsFile: '/assets/vendor.js',
       },
 
-      registry: setupRegistryFor('template', function(tree) {
+      registry: setupRegistryFor('template', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/hbs$/g, 'js');
@@ -186,7 +184,7 @@ describe('Default Packager: Javascript', function() {
     ]);
   });
 
-  it('packages javascript files with sourcemaps off', async function() {
+  it('packages javascript files with sourcemaps off', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
       env: 'development',
@@ -196,7 +194,7 @@ describe('Default Packager: Javascript', function() {
         vendorJsFile: '/assets/vendor.js',
       },
 
-      registry: setupRegistryFor('template', function(tree) {
+      registry: setupRegistryFor('template', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/hbs$/g, 'js');
@@ -221,11 +219,11 @@ describe('Default Packager: Javascript', function() {
     expect(Object.keys(outputFiles.assets)).to.deep.equal(['the-best-app-ever.js', 'vendor.js']);
   });
 
-  it('processes javascript according to the registry', async function() {
+  it('processes javascript according to the registry', async function () {
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
 
-      registry: setupRegistryFor('js', function(tree) {
+      registry: setupRegistryFor('js', function (tree) {
         return new Funnel(tree, {
           getDestinationPath(relativePath) {
             return relativePath.replace(/js/g, 'jsx');
@@ -257,14 +255,14 @@ describe('Default Packager: Javascript', function() {
     });
   });
 
-  it('runs pre/post-process add-on hooks', async function() {
+  it('runs pre/post-process add-on hooks', async function () {
     let addonPreprocessTreeHookCalled = false;
     let addonPostprocessTreeHookCalled = false;
 
     let defaultPackager = new DefaultPackager({
       name: 'the-best-app-ever',
 
-      registry: setupRegistryFor('js', tree => tree),
+      registry: setupRegistryFor('js', (tree) => tree),
 
       // avoid using `testdouble.js` here on purpose; it does not have a "proxy"
       // option, where a function call would be registered and the original
@@ -295,162 +293,3 @@ describe('Default Packager: Javascript', function() {
     expect(addonPostprocessTreeHookCalled).to.equal(true);
   });
 });
-
-if (isExperimentEnabled('MODULE_UNIFICATION')) {
-  // there is a little code duplication here (mainly the ceremony around
-  // setting up the folder structure and disposing of it after the tests are
-  // executed; once we enable MU flag by defaul, we should clean this up a tad
-  describe('with module unification layout', function() {
-    let inputMU, outputMU;
-    let addonPreprocessTreeHookCalled = false;
-    let addonPostprocessTreeHookCalled = false;
-
-    let MU_LAYOUT = {
-      'addon-tree-output': {},
-      public: {},
-      tests: {},
-      vendor: {},
-      src: {
-        'main.js': '',
-        'resolver.js': '',
-        'router.js': '',
-        ui: {
-          components: {
-            'login-form': {
-              'component-test.js': ' // login-form-component-test',
-              'component.js': '',
-              'template.hbs': '',
-            },
-          },
-          'index.html': '',
-          routes: {
-            application: {
-              'template.hbs': '',
-            },
-          },
-          styles: {
-            'app.css': 'html { height: 100%; }',
-          },
-        },
-      },
-    };
-    before(async function() {
-      inputMU = await createTempDir();
-
-      inputMU.write(MU_LAYOUT);
-    });
-
-    after(async function() {
-      await inputMU.dispose();
-    });
-
-    afterEach(async function() {
-      await outputMU.dispose();
-    });
-
-    it('processes javascript according to the registry', async function() {
-      let defaultPackager = new DefaultPackager({
-        name: 'the-best-app-ever',
-
-        distPaths: {
-          appJsFile: '/assets/the-best-app-ever.js',
-          appCssFile: '/assets/the-best-app-ever.css',
-          vendorJsFile: '/assets/vendor.js',
-        },
-
-        registry: setupRegistry({
-          js: tree => tree,
-        }),
-
-        isModuleUnificationEnabled: true,
-
-        // avoid using `testdouble.js` here on purpose; it does not have a "proxy"
-        // option, where a function call would be registered and the original
-        // would be returned
-        project: {
-          addons: [
-            {
-              preprocessTree(type, tree) {
-                expect(type).to.equal('src');
-                return tree;
-              },
-              postprocessTree(type, tree) {
-                expect(type).to.equal('src');
-                return tree;
-              },
-            },
-          ],
-        },
-      });
-
-      expect(defaultPackager._cachedProcessedSrc).to.equal(null);
-
-      outputMU = await buildOutput(defaultPackager.processJavascriptSrc(inputMU.path()));
-
-      let outputFiles = outputMU.read();
-
-      expect(outputFiles['the-best-app-ever']).to.deep.equal({
-        src: {
-          'main.js': '',
-          'resolver.js': '',
-          'router.js': '',
-          ui: {
-            components: {
-              'login-form': {
-                'component.js': '',
-              },
-            },
-          },
-        },
-      });
-    });
-
-    it('runs pre/post-process add-on hooks', async function() {
-      addonPreprocessTreeHookCalled = false;
-      addonPostprocessTreeHookCalled = false;
-
-      let defaultPackager = new DefaultPackager({
-        name: 'the-best-app-ever',
-
-        distPaths: {
-          appJsFile: '/assets/the-best-app-ever.js',
-          appCssFile: '/assets/the-best-app-ever.css',
-          vendorJsFile: '/assets/vendor.js',
-        },
-
-        registry: setupRegistry({
-          js: tree => tree,
-        }),
-
-        isModuleUnificationEnabled: true,
-
-        // avoid using `testdouble.js` here on purpose; it does not have a "proxy"
-        // option, where a function call would be registered and the original
-        // would be returned
-        project: {
-          addons: [
-            {
-              preprocessTree(type, tree) {
-                expect(type).to.equal('src');
-                addonPreprocessTreeHookCalled = true;
-
-                return tree;
-              },
-              postprocessTree(type, tree) {
-                expect(type).to.equal('src');
-                addonPostprocessTreeHookCalled = true;
-
-                return tree;
-              },
-            },
-          ],
-        },
-      });
-
-      outputMU = await buildOutput(defaultPackager.processJavascriptSrc(inputMU.path()));
-
-      expect(addonPreprocessTreeHookCalled).to.equal(true);
-      expect(addonPostprocessTreeHookCalled).to.equal(true);
-    });
-  });
-}

@@ -5,8 +5,8 @@ captureExit.captureExit();
 
 const glob = require('glob');
 const Mocha = require('mocha');
-const RSVP = require('rsvp');
 const fs = require('fs-extra');
+const expect = require('./chai').expect;
 
 if (process.env.EOLNEWLINE) {
   require('os').EOL = '\n';
@@ -49,8 +49,16 @@ function addFiles(mocha, files) {
 }
 
 function runMocha() {
+  let ROOT = process.cwd();
+
+  // ensure that at the end of every test, we are in the correct current
+  // working directory
+  mocha.suite.afterEach(function () {
+    expect(process.cwd()).to.equal(ROOT);
+  });
+
   console.time('Mocha Tests Running Time');
-  mocha.run(failures => {
+  mocha.run((failures) => {
     console.timeEnd('Mocha Tests Running Time');
 
     // eslint-disable-next-line no-process-exit
@@ -58,9 +66,9 @@ function runMocha() {
   });
 }
 
-RSVP.resolve()
+Promise.resolve()
   .then(() => runMocha())
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     console.error(error.stack);
 
