@@ -11,6 +11,7 @@ const util = require('util');
 const EOL = require('os').EOL;
 const chalk = require('chalk');
 const hasGlobalYarn = require('../helpers/has-global-yarn');
+const { isExperimentEnabled } = require('../../lib/experiments');
 
 const chai = require('../chai');
 let expect = chai.expect;
@@ -99,6 +100,44 @@ describe('Acceptance: ember new', function () {
     expect(file('package.json')).not.to.match(/"ember-welcome-page"/);
 
     expect(file('app/templates/application.hbs')).to.contain('Welcome to Ember');
+  });
+
+  // ember new foo --lang
+  // -------------------------------
+  // Good: Correct Usage
+  it('ember new foo --lang=(valid code): no message + set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=en-US']);
+    expect(file('app/index.html')).to.contain('<html lang="en-US">');
+  });
+
+  // Edge Case: both valid code AND programming language abbreviation, possible misuse
+  it('ember new foo --lang=(valid code + programming language abbreviation): emit warning + set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=css']);
+    expect(file('app/index.html')).to.contain('<html lang="css">');
+  });
+
+  // Misuse: possibly an attempt to set app programming language
+  it('ember new foo --lang=(programming language): emit warning + do not set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=JavaScript']);
+    expect(file('app/index.html')).to.contain('<html>');
+  });
+
+  // Misuse: possibly an attempt to set app programming language
+  it('ember new foo --lang=(programming language abbreviation): emit warning + do not set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=JS']);
+    expect(file('app/index.html')).to.contain('<html>');
+  });
+
+  // Misuse: possibly an attempt to set app programming language
+  it('ember new foo --lang=(programming language file extension): emit warning + do not set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=.js']);
+    expect(file('app/index.html')).to.contain('<html>');
+  });
+
+  // Misuse: Invalid Country Code
+  it('ember new foo --lang=(invalid code): emit warning + do not set `lang` in index.html', async function () {
+    await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git', '--lang=en-UK']);
+    expect(file('app/index.html')).to.contain('<html>');
   });
 
   it('ember new npm blueprint with old version', async function () {
@@ -374,6 +413,23 @@ describe('Acceptance: ember new', function () {
     expect(pkgJson.name).to.equal('@foo/bar', 'uses addon name for package name');
   });
 
+  it('embroider experiment creates the correct files', async function () {
+    let ORIGINAL_PROCESS_ENV = process.env.EMBER_CLI_EMBROIDER;
+    process.env['EMBER_CLI_EMBROIDER'] = 'true';
+    await ember(['new', 'foo', '--skip-npm', '--skip-git', '--skip-bower']);
+
+    if (ORIGINAL_PROCESS_ENV === undefined) {
+      delete process.env['EMBER_CLI_EMBROIDER'];
+    } else {
+      process.env['EMBER_CLI_EMBROIDER'] = ORIGINAL_PROCESS_ENV;
+    }
+
+    let pkgJson = fs.readJsonSync('package.json');
+    expect(pkgJson.devDependencies['@embroider/compat']).to.exist;
+    expect(pkgJson.devDependencies['@embroider/core']).to.exist;
+    expect(pkgJson.devDependencies['@embroider/webpack']).to.exist;
+  });
+
   describe('verify fixtures', function () {
     function checkEslintConfig(fixturePath) {
       expect(file('.eslintrc.js')).to.equal(file(path.join(__dirname, '../fixtures', fixturePath, '.eslintrc.js')));
@@ -389,6 +445,12 @@ describe('Acceptance: ember new', function () {
       expect(file(fileName)).to.equal(fixtureContents);
     }
 
+    function checkEmberCLIBuild(fixtureName, fileName) {
+      let fixturePath = path.join(__dirname, '../fixtures', fixtureName, fileName);
+      let fixtureContents = fs.readFileSync(fixturePath, { encoding: 'utf-8' });
+      expect(file(fileName)).to.equal(fixtureContents);
+    }
+
     it('app defaults', async function () {
       await ember(['new', 'foo', '--skip-npm', '--skip-bower', '--skip-git']);
 
@@ -399,11 +461,20 @@ describe('Acceptance: ember new', function () {
         expect(file(filePath)).to.equal(file(path.join(__dirname, '../fixtures', fixturePath, filePath)));
       });
 
-      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
       checkFileWithEmberCLIVersionReplacement(fixturePath, 'config/ember-cli-update.json');
+
+      if (isExperimentEnabled('EMBROIDER')) {
+        fixturePath = `${namespace}/embroider`;
+      }
+
+      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
+      checkEmberCLIBuild(fixturePath, 'ember-cli-build.js');
 
       // option independent, but piggy-backing on an existing generate for speed
       checkEslintConfig(namespace);
+
+      // ember new without --lang flag (default) has no lang attribute in index.html
+      expect(file('app/index.html')).to.contain('<html>');
     });
 
     it('addon defaults', async function () {
@@ -427,6 +498,9 @@ describe('Acceptance: ember new', function () {
 
       // option independent, but piggy-backing on an existing generate for speed
       checkEslintConfig(namespace);
+
+      // ember addon without --lang flag (default) has no lang attribute in dummy index.html
+      expect(file('tests/dummy/app/index.html')).to.contain('<html>');
     });
 
     it('app + npm + !welcome', async function () {
@@ -439,9 +513,13 @@ describe('Acceptance: ember new', function () {
         expect(file(filePath)).to.equal(file(path.join(__dirname, '../fixtures', fixturePath, filePath)));
       });
 
-      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
       checkFileWithEmberCLIVersionReplacement(fixturePath, 'config/ember-cli-update.json');
 
+      if (isExperimentEnabled('EMBROIDER')) {
+        fixturePath = 'app/embroider-no-welcome';
+      }
+
+      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
       // option independent, but piggy-backing on an existing generate for speed
       checkEslintConfig(namespace);
     });
@@ -455,8 +533,13 @@ describe('Acceptance: ember new', function () {
         expect(file(filePath)).to.equal(file(path.join(__dirname, '../fixtures', fixturePath, filePath)));
       });
 
-      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
       checkFileWithEmberCLIVersionReplacement(fixturePath, 'config/ember-cli-update.json');
+
+      if (isExperimentEnabled('EMBROIDER')) {
+        fixturePath = 'app/embroider';
+      }
+
+      checkFileWithEmberCLIVersionReplacement(fixturePath, 'package.json');
     });
 
     it('addon + yarn + welcome', async function () {

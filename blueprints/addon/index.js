@@ -156,6 +156,8 @@ module.exports = {
       welcome: options.welcome,
       blueprint: 'addon',
       blueprintOptions,
+      embroider: false,
+      lang: options.lang,
     };
   },
 
