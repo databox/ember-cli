@@ -1,16 +1,53 @@
 # ember-cli Changelog
 
-## v3.22.0-beta.1
+
+## v3.23.0-beta.2
 
 #### Blueprint Changes
 
-- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.21.1...v3.22.0-beta.1)
-- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.21.1...v3.22.0-beta.1)
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.23.0-beta.1...v3.23.0-beta.2)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.23.0-beta.1...v3.23.0-beta.2)
+
+#### Changelog
+
+- [#9371](https://github.com/ember-cli/ember-cli/pull/9371) Adds missing `qunit-dom` setup invocation [@scalvert](https://github.com/scalvert)
+
+Thank you to all who took the time to contribute!
+
+## v3.23.0-beta.1
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.22.0...v3.23.0-beta.1)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.22.0...v3.23.0-beta.1)
+
+#### Changelog
+
+- [#9340](https://github.com/ember-cli/ember-cli/pull/9340) Update blueprints with new testing configuration [@scalvert](https://github.com/scalvert)
+- [#9361](https://github.com/ember-cli/ember-cli/pull/9361) / [#9364](https://github.com/ember-cli/ember-cli/pull/9364) / [#9365](https://github.com/ember-cli/ember-cli/pull/9365) Update dependencies to latest. [@rwjblue](https://github.com/rwjblue)
+- [#9368](https://github.com/ember-cli/ember-cli/pull/9368) Update `markdown-it` to latest. [@rwjblue](https://github.com/rwjblue)
+- [#9369](https://github.com/ember-cli/ember-cli/pull/9369) Update `ember-source` and `ember-data` for 3.23.0-beta's. [@rwjblue](https://github.com/rwjblue)
+
+Thank you to all who took the time to contribute!
+
+## v3.22.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.21.0...v3.22.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.21.0...v3.22.0)
 
 #### Changelog
 
 - [#9325](https://github.com/ember-cli/ember-cli/pull/9325) Update dependencies for 3.22 beta series. [@rwjblue](https://github.com/rwjblue)
 - [#9325](https://github.com/ember-cli/ember-cli/pull/9325) Update to `eslint-plugin-ember@9.0.0`. [@rwjblue](https://github.com/rwjblue)
+- [#9336](https://github.com/ember-cli/ember-cli/pull/9336) Fixup internal test harness fixturify-project helper. [@rwjblue](https://github.com/rwjblue)
+- [#9338](https://github.com/ember-cli/ember-cli/pull/9338) Remove requirement to have `loader.js`. [@rwjblue](https://github.com/rwjblue)
+- [#9343](https://github.com/ember-cli/ember-cli/pull/9343) Fix yuidoc for private APIs [@jenweber](https://github.com/jenweber)
+- [#9359](https://github.com/ember-cli/ember-cli/pull/9359) Upgrade to tiny-lr v2.0.0 [@elwayman02](https://github.com/elwayman02)
+- [#9360](https://github.com/ember-cli/ember-cli/pull/9360) Update blueprint dependencies to latest version. [@rwjblue](https://github.com/rwjblue)
+
+Thank you to all who took the time to contribute!
 
 ## v3.21.2
 
