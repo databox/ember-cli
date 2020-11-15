@@ -29,7 +29,6 @@
   "scripts": {
     "docs": "yuidoc",
     "lint": "eslint . --cache",
-    "prepack": "yarn docs",
     "test": "node --unhandled-rejections=strict tests/runner",
     "test:all": "node --unhandled-rejections=strict tests/runner all",
     "test:cover": "nyc --all --reporter=text --reporter=lcov node tests/runner all",
