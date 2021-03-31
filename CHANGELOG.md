@@ -1,32 +1,95 @@
 # ember-cli Changelog
 
-
-## v3.23.0-beta.2
+## v3.26.0-beta.0
 
 #### Blueprint Changes
 
-- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.23.0-beta.1...v3.23.0-beta.2)
-- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.23.0-beta.1...v3.23.0-beta.2)
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.25.0...v3.26.0-beta.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.25.0...v3.26.0-beta.0)
 
 #### Changelog
 
-- [#9371](https://github.com/ember-cli/ember-cli/pull/9371) Adds missing `qunit-dom` setup invocation [@scalvert](https://github.com/scalvert)
+- [#9437](https://github.com/ember-cli/ember-cli/pull/9437) Add Prettier files to ".npmignore" file in addon blueprint [@bertdeblock](https://github.com/bertdeblock)
+- [#9436](https://github.com/ember-cli/ember-cli/pull/9436) Enable Embroider test scenario for addons [@thoov](https://github.com/thoov)
+- [#9435](https://github.com/ember-cli/ember-cli/pull/9435) Use "lint:fix" script in app and addon README files [@bertdeblock](https://github.com/bertdeblock)
+- [#9451](https://github.com/ember-cli/ember-cli/pull/9451) update blueprint deps [@kellyselden](https://github.com/kellyselden)
 
 Thank you to all who took the time to contribute!
 
-## v3.23.0-beta.1
+
+## v3.25.2
 
 #### Blueprint Changes
 
-- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.22.0...v3.23.0-beta.1)
-- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.22.0...v3.23.0-beta.1)
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.25.1...v3.25.2)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.25.1...v3.25.2)
 
 #### Changelog
 
-- [#9340](https://github.com/ember-cli/ember-cli/pull/9340) Update blueprints with new testing configuration [@scalvert](https://github.com/scalvert)
-- [#9361](https://github.com/ember-cli/ember-cli/pull/9361) / [#9364](https://github.com/ember-cli/ember-cli/pull/9364) / [#9365](https://github.com/ember-cli/ember-cli/pull/9365) Update dependencies to latest. [@rwjblue](https://github.com/rwjblue)
-- [#9368](https://github.com/ember-cli/ember-cli/pull/9368) Update `markdown-it` to latest. [@rwjblue](https://github.com/rwjblue)
-- [#9369](https://github.com/ember-cli/ember-cli/pull/9369) Update `ember-source` and `ember-data` for 3.23.0-beta's. [@rwjblue](https://github.com/rwjblue)
+- [#9473](https://github.com/ember-cli/ember-cli/pull/9473) Issue a better error message for add-on's missing an entry point (e.g. invalid `ember-addon.main` path) [@ef4](https://github.com/ef4)
+
+Thank you to all who took the time to contribute!
+
+
+## v3.25.1
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.25.0...v3.25.1)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.25.0...v3.25.1)
+
+#### Changelog
+
+- [#9467](https://github.com/ember-cli/ember-cli/pull/9467) Defer `The tests file was not loaded.` warning until after `DOMContentLoaded` [@ef4](https://github.com/ef4)
+
+
+Thank you to all who took the time to contribute!
+
+## v3.25.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.24.0...v3.25.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.24.0...v3.25.0)
+
+#### Changelog
+
+- [#9450](https://github.com/ember-cli/ember-cli/pull/9450) update blueprint deps [@kellyselden](https://github.com/kellyselden)
+- Update `ember-data` and `ember-source` to 3.25.0-beta [@kellyselden](https://github.com/kellyselden) / [@rwjblue](https://github.com/rwjblue)
+
+Thank you to all who took the time to contribute!
+
+## v3.24.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.23.0...v3.24.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.23.0...v3.24.0)
+
+#### Changelog
+
+- [#9410](https://github.com/ember-cli/ember-cli/pull/9410) Add `.eslintcache` to `.gitignore` for applications and addons [@simonihmig](https://github.com/simonihmig)
+- [#9425](https://github.com/ember-cli/ember-cli/pull/9425) Update blueprint dependecies to latest. [@rwjblue](https://github.com/rwjblue)
+- [#9372](https://github.com/ember-cli/ember-cli/pull/9372) / [#9382](https://github.com/ember-cli/ember-cli/pull/9382) Add `ember-page-title` to app blueprint [@raido](https://github.com/raido)
+- [#9391](https://github.com/ember-cli/ember-cli/pull/9391) / [#9407](https://github.com/ember-cli/ember-cli/pull/9407) Add `prettier` to blueprint [@bmish](https://github.com/bmish)
+- [#9402](https://github.com/ember-cli/ember-cli/pull/9402) Prevent build cycles when app is within a watched dir [@ef4](https://github.com/ef4)
+- [#9403](https://github.com/ember-cli/ember-cli/pull/9403) Update blueprint to eslint-plugin-ember v10 [@bmish](https://github.com/bmish)
+- [#9340](https://github.com/ember-cli/ember-cli/pull/9340) / [#9371](https://github.com/ember-cli/ember-cli/pull/9371) Update blueprints with new testing configuration [@scalvert](https://github.com/scalvert)
+
+
+Thank you to all who took the time to contribute!
+
+## v3.23.0
+
+#### Blueprint Changes
+
+- [`ember new` diff](https://github.com/ember-cli/ember-new-output/compare/v3.22.0...v3.23.0)
+- [`ember addon` diff](https://github.com/ember-cli/ember-addon-output/compare/v3.22.0...v3.23.0)
+
+#### Changelog
+
+- [#9369](https://github.com/ember-cli/ember-cli/pull/9369) / [#9406](https://github.com/ember-cli/ember-cli/pull/9406) Update blueprint dependencies to latest. [@rwjblue](https://github.com/rwjblue)
+- [#9361](https://github.com/ember-cli/ember-cli/pull/9361) / [#9364](https://github.com/ember-cli/ember-cli/pull/9364) / [#9365](https://github.com/ember-cli/ember-cli/pull/9365) / [#9368](https://github.com/ember-cli/ember-cli/pull/9368) Update dependencies to latest. [@rwjblue](https://github.com/rwjblue)
 
 Thank you to all who took the time to contribute!
 
